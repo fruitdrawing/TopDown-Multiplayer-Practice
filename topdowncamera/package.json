@@ -10,5 +10,9 @@
   "devDependencies": {
     "typescript": "^4.5.4",
     "vite": "^2.9.5"
+  },
+  "dependencies": {
+    "object-sizeof": "^1.6.3",
+    "socket.io-client": "^4.4.1"
   }
 }

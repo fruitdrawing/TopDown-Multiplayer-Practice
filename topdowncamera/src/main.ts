@@ -1,5 +1,8 @@
 import './style.css'
 import { Util } from './util';
+import { io, Socket } from "socket.io-client";
+import sizeof from 'object-sizeof'
+import { Vector2 } from './TopDown/Vector2';
 // if (navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i)) {
 //   /* iOS hides Safari address bar */
 //   window.addEventListener("load", function () {
@@ -8,6 +11,27 @@ import { Util } from './util';
 //     }, 1000);
 //   });
 // }
+const CellDistanceOffset = 80;
+
+const clientIO: Socket = io("http://localhost:3001");
+
+clientIO.emit('test', 'hi');
+
+const testarray: number[][] = [];
+const testarraytwo: number[] = [];
+
+const nn: number = 0;
+const na: Uint16Array = new Uint16Array(2);
+const booool: boolean = false;
+console.log('number byte size :nn(number 1)', sizeof(nn))
+console.log('number byte size :1', sizeof(1))
+console.log('number byte size :"1"', sizeof("1"))
+console.log('number byte size :undefined', sizeof(undefined))
+console.log('number byte size :Uint16Array(2)', sizeof(na));
+console.log('number byte size :testarray', sizeof(testarray));
+
+
+
 
 // * prevent double tap zoom
 var lastTouchEnd = 0;
@@ -58,6 +82,31 @@ document.addEventListener('touchend', function (event) {
 
 
 
+
+// * Camera Related
+
+class Camera {
+  offset: number = 80;
+  cameraOffsetX = window.innerWidth / 2 - (this.offset / 2);
+  cameraOffsetY = window.innerHeight / 3;
+  map: HTMLDivElement = document.getElementById('map') as HTMLDivElement;
+  setCameraPosition(x: number, y: number) {
+    // map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
+    this.map.style.transform = `translate3d(${x * this.offset + this.cameraOffsetX}px,${y * this.offset + this.cameraOffsetY}px,0)`;
+  }
+  resizeCameraOffset() {
+    this.map.setAttribute("transition", "0.0s linear");
+
+    console.log('resized width', window.innerWidth);
+    this.cameraOffsetX = window.innerWidth / 2 - (girdCellSize / 2);
+    console.log('resized height', window.innerHeight);
+    this.cameraOffsetY = window.innerHeight / 3;
+    this.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
+    this.map.setAttribute("transition", "0.4s linear");
+  }
+
+}
+const mainCamera = new Camera();
 
 
 const debugText: HTMLDivElement = document.getElementById("debugText") as HTMLDivElement;
@@ -127,14 +176,6 @@ class MapInfo {
 
 
 
-class Vector2 {
-  x: number
-  y: number
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
-}
 
 enum ItemType {
   chess,
@@ -222,7 +263,6 @@ let x = 50;
 let y = 50;
 
 
-const CellDistanceOffset = 80;
 
 
 
@@ -250,7 +290,7 @@ class Character {
   //status
   hp: number = 3;
   died: boolean = false;
-
+  camera: Camera = mainCamera;
   bag: GameObject[] = [];
   constructor(id: string, initialPosition: Vector2, isClient: boolean) {
     // if(createdMap.checkOccupiedByVector2(initialPosition)) return;
@@ -313,6 +353,10 @@ class Character {
 
     this.isMoving = true;
     this.currentPosition = to;
+    //^ Camera
+    // setCameraPosition(-to.x, -to.y);
+    if (this.camera != null)
+      this.camera.setCameraPosition(-to.x, -to.y);
 
     //* animation
     this.characterHtmlElement.style.transform =
@@ -336,19 +380,24 @@ class Character {
 
 
     let targetCell = this.getForwardCell();
+    this.characterSpriteHtmlElement.classList.remove('character_spritesheet');
+    void this.characterSpriteHtmlElement.offsetWidth;
+    this.characterSpriteHtmlElement.classList.add('character_spritesheet');
 
     this.characterSpriteHtmlElement.setAttribute("attack", "true");
-    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     if (targetCell != null) {
       if (targetCell.isOccupied == true) {
-        targetCell.standingCharacter?.damage();
+        if (targetCell.standingCharacter?.died == false)
+          targetCell.standingCharacter?.damage();
       }
     }
     await new Promise(resolve => setTimeout(resolve, 500));
     this.characterSpriteHtmlElement.setAttribute("attack", "false");
     this.isAttacking = false;
-
+    this.characterSpriteHtmlElement.style.setProperty('animation-iteration-count', 'infinite')
 
   }
 
@@ -359,9 +408,13 @@ class Character {
   async damage() {
     if (this.died == true) return;
     // ^ damage effect
+    this.characterSpriteHtmlElement.setAttribute('damage', 'true');
 
     // this.characterSpriteHtmlElement.classList.
     this.hp -= 1;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    this.characterSpriteHtmlElement.setAttribute('damage', 'false');
+
     console.log('damaged', this);
     if (this.hp == 0) {
       // stun for 3 seconds
@@ -371,13 +424,16 @@ class Character {
   }
 
   async die() {
-    this.characterSpriteHtmlElement.remove();
+    this.characterSpriteHtmlElement.setAttribute('died', 'true');
 
-    this.characterHtmlElement.remove();
+    // this.characterHtmlElement.remove();
     this.died = true;
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     this.died = false;
     this.hp = 3;
+    this.characterSpriteHtmlElement.setAttribute('died', 'false');
+
   }
 
   getForwardCell(): Cell | undefined {
@@ -496,7 +552,6 @@ function checkKeyInput() {
     if (playerCharacter.isMoving == false) {
       playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x - 1, playerCharacter.currentPosition.y));
       // map.style.transform = `translate3d(${-x * CellDistance}px,${-y * CellDistance}px,0px)`;
-      setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
       // map.style.transform = `translate3d(${-playerCharacter.currentPosition.x * CellDistance}px,${-playerCharacter.currentPosition.y * CellDistance}px,0)`;
     }
@@ -505,21 +560,21 @@ function checkKeyInput() {
   else if (upPressed) {
     if (playerCharacter.isMoving == false) {
       playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x, playerCharacter.currentPosition.y - 1));
-      setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
+      // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
     }
   }
   else if (rightPressed) {
     if (playerCharacter.isMoving == false) {
       playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x + 1, playerCharacter.currentPosition.y));
-      setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
+      // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
     }
   }
   else if (downPressed) {
     if (playerCharacter.isMoving == false) {
       playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x, playerCharacter.currentPosition.y + 1));
-      setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
+      // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
     }
   }
@@ -609,6 +664,9 @@ document.addEventListener("keyup", (e) => {
   if (e.key === 'a') {
     attackPressed = false;
   }
+  if (e.key === 't') {
+    clientIO.emit('player-spawn');
+  }
 
 });
 
@@ -638,30 +696,44 @@ const update = () => {
 update(); //kick off the first step!
 
 
-// * Camera Related
+// let cameraOffsetX = window.innerWidth / 2 - (CellDistanceOffset / 2);
+// let cameraOffsetY = window.innerHeight / 3;
 
-let cameraOffsetX = window.innerWidth / 2 - (CellDistanceOffset / 2);
-let cameraOffsetY = window.innerHeight / 3;
-
-setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y)
+// setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y)
 
 
-function setCameraPosition(x: number, y: number) {
-  console.log('playerCharacter.currentPosition', playerCharacter.currentPosition);
-  // map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
-  map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
-}
+// function setCameraPosition(x: number, y: number) {
+//   console.log('playerCharacter.currentPosition', playerCharacter.currentPosition);
+//   // map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
+//   map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
+// }
 
 
-function resizeCameraOffset() {
-  map.setAttribute("transition", "0.0s linear");
+// function resizeCameraOffset() {
+//   map.setAttribute("transition", "0.0s linear");
 
-  console.log('resized width', window.innerWidth);
-  cameraOffsetX = window.innerWidth / 2 - (girdCellSize / 2);
-  console.log('resized height', window.innerHeight);
-  cameraOffsetY = window.innerHeight / 3;
-  setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
-  map.setAttribute("transition", "0.4s linear");
-}
+//   console.log('resized width', window.innerWidth);
+//   cameraOffsetX = window.innerWidth / 2 - (girdCellSize / 2);
+//   console.log('resized height', window.innerHeight);
+//   cameraOffsetY = window.innerHeight / 3;
+//   setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
+//   map.setAttribute("transition", "0.4s linear");
+// }
 
-window.onresize = resizeCameraOffset;
+window.onresize = mainCamera.resizeCameraOffset;
+
+// console.log('number byte size :Int16Array(2)', sizeof(ItemType.chair));
+// console.log(ItemType.chair)
+// console.log(typeof (ItemType.chess));
+
+(setTimeout(() => {
+  clientIO.emit('player-move', new Vector2(1, 2));
+}, 1000));
+
+clientIO.on('player-move', (data) => {
+  playerCharacter.TryMove(data);
+});
+
+clientIO.on('player-spawn', (data: Vector2) => {
+  new Character(clientIO.id, data, false);
+});
