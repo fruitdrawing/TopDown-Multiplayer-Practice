@@ -1,0 +1,28 @@
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin: 0px auto;
+  padding: 0px;
+  border: 0px;
+}
+
+body {
+  margin: 0px auto;
+  background-color: darkgrey;
+}
+
+
+#game-container {
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  image-rendering: pixelated;
+  transform: scale(2) translateY(30%);
+  border-color: black;
+  outline: 10px;
+}

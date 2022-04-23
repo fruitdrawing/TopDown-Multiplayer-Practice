@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" name="theme-color" content="#1A0F9A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="red">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <!--  ^ initial-scale=1.0 -->
+
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0,user-scalable=no" />
+  <title>GAME</title>
+  <style>
+    .no-double-tap {
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="debugText" style="position : absolute; top : 10px; z-index: 2;"></div>
+
+  <!-- //^ bottom UI -->
+  <div id="bottomUI">
+    <div class="dpadParent">
+      <div class="emptyDpad"></div>
+      <button id="dpadUp" class="dpadButton">
+        <img class="dpadArrow" src="./src/images/uparrow.png"></button>
+      <div class="emptyDpad"></div>
+
+      <button id="dpadLeft" class="dpadButton">
+        <img class="dpadArrow" src="./src/images/uparrow.png" style="transform : rotate(-90deg)"></button>
+
+
+      <button id="dpadDown" class="dpadButton">
+        <img class="dpadArrow" src="./src/images/uparrow.png" style="transform : rotate(180deg)"></button>
+
+      <button id="dpadRight" class="dpadButton">
+        <img class="dpadArrow" src="./src/images/uparrow.png" style="transform : rotate(90deg)"></button>
+    </div>
+  </div>
+
+
+  <!-- //^ camera Game Screen UI -->
+
+  <div id="camera" class="camera">
+    <div id="map" class="map">
+
+    </div>
+  </div>
+
+
+
+  <div class="inventoryButton">=</div>
+
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
