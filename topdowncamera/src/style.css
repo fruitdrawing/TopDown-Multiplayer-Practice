@@ -3,9 +3,9 @@
   --grid-cell: calc(var(--pixel-size) * 60);
   --bg: black;
 
-
   -webkit-touch-callout: none !important;
   -webkit-user-select: none !important;
+
 }
 
 
@@ -78,7 +78,8 @@ body {
   background-size: 100%;
   width: calc(var(--grid-cell)*2);
   height: calc(var(--grid-cell)*4);
-  animation: moveSpriteSheet steps(2) 0.5s infinite;
+  animation: moveSpriteSheet steps(2) 0.5s;
+  animation-iteration-count: infinite;
 }
 
 .character_spritesheet[facing="right"] {
@@ -97,6 +98,53 @@ body {
 
 .character_spritesheet[facing="down"] {
   background-position-y: 0px
+}
+
+
+
+
+
+.character_spritesheet[facing="down"][attack="true"] {
+  background-position-y: calc(var(--grid-cell)*-4);
+  transform: translate3d(0%, 0%, 0%);
+  animation-iteration-count: 1;
+
+}
+
+
+.character_spritesheet[facing="left"][attack="true"] {
+  background-position-y: calc(var(--grid-cell)*-5);
+  transform: translate3d(0%, 0%, 0%);
+  animation-iteration-count: 1;
+
+
+}
+
+
+.character_spritesheet[facing="up"][attack="true"] {
+  background-position-y: calc(var(--grid-cell)*-6);
+  transform: translate3d(0%, 0%, 0%);
+  animation-iteration-count: 1;
+
+
+}
+
+
+.character_spritesheet[facing="right"][attack="true"] {
+  background-position-y: calc(var(--grid-cell)*-7);
+  animation-iteration-count: 1;
+  animation-name: moveSpriteSheet;
+
+}
+
+
+.character_spritesheet[damage="true"] {
+  background-position-y: calc(var(--grid-cell)*-8);
+}
+
+.character_spritesheet[died="true"] {
+  background-position-y: calc(var(--grid-cell)*-9);
+
 }
 
 @keyframes moveSpriteSheet {
@@ -165,6 +213,8 @@ body {
 
 .dpadButton:hover {
   background-color: lightgreen;
+  border-color: white;
+  transform: translate3d(0, 3px, 0);
 
 }
 

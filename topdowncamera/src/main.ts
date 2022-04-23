@@ -1,5 +1,5 @@
 import './style.css'
-
+import { Util } from './util';
 // if (navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i)) {
 //   /* iOS hides Safari address bar */
 //   window.addEventListener("load", function () {
@@ -56,15 +56,18 @@ document.addEventListener('touchend', function (event) {
 
 })();
 
+
+
+
+
 const debugText: HTMLDivElement = document.getElementById("debugText") as HTMLDivElement;
-console.log(debugText);
 const pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
 const girdCellSize = 120;
 // parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-cell'));
 console.log('pixelSize', pixelSize);
 console.log('girdCellSize', girdCellSize);
-const character: HTMLDivElement = document.querySelector(".character") as HTMLDivElement;
-const character_spritesheet: HTMLDivElement = document.querySelector(".character_spritesheet") as HTMLDivElement;
+// const character: HTMLDivElement = document.querySelector(".character") as HTMLDivElement;
+// const character_spritesheet: HTMLDivElement = document.querySelector(".character_spritesheet") as HTMLDivElement;
 
 
 
@@ -113,6 +116,13 @@ class MapInfo {
   getCellByVector2(position: Vector2): Cell | undefined {
     return this.cellList.find(c => c.position.x === position.x && c.position.y === position.y);
   }
+  tryGetItemOnCellByVector2(position: Vector2): GameObject | undefined {
+    let foundCell = this.getCellByVector2(position);
+    if (foundCell != null) {
+      return foundCell.hasItem;
+    }
+    return undefined;
+  }
 }
 
 
@@ -158,6 +168,20 @@ class GameObject {
   setImage(src: string) {
     // this.imgElement.style.backgroundImage = `url("${src}")`;
   }
+
+  tryRemoveItemFromWorld(): boolean {
+    let foundCell = createdMap.getCellByVector2(this.position);
+    if (foundCell != null) {
+      foundCell.hasItem = undefined;
+      this.removeImageElementFromWorld();
+      return true;
+    }
+    return false;
+  }
+
+  private removeImageElementFromWorld() {
+    this.imgElement.remove();
+  }
 }
 
 class Cell {
@@ -165,6 +189,7 @@ class Cell {
   htmlElement: HTMLDivElement;
   isOccupied: boolean = false;
   hasItem: GameObject | undefined = undefined;
+  standingCharacter: Character | undefined = undefined;
   constructor(vector2: Vector2) {
     this.position = vector2;
     this.htmlElement = document.createElement("div") as HTMLDivElement;
@@ -181,12 +206,16 @@ class Cell {
     // this.htmlElement.style.transform = `translate3d(${vector2.x},${vector2.y},0)`;
     // this.htmlElement.classList.add('cell');
   }
+  setStandingCharacter(character: Character | undefined) {
+    this.standingCharacter = character;
+  }
 }
 
 let leftPressed: boolean = false;
 let rightPressed: boolean = false;
 let upPressed: boolean = false;
 let downPressed: boolean = false;
+let attackPressed: boolean = false;
 
 // * staring point
 let x = 50;
@@ -207,6 +236,8 @@ enum Direction {
 enum CharacterBehaviour {
   NPC
 }
+
+
 class Character {
   id: string;
   isClient: boolean;
@@ -215,6 +246,12 @@ class Character {
   currentPosition: Vector2 = new Vector2(0, 0);
   currentDirection: Direction = Direction.South;
   isMoving: boolean = false;
+  isAttacking: boolean = false;
+  //status
+  hp: number = 3;
+  died: boolean = false;
+
+  bag: GameObject[] = [];
   constructor(id: string, initialPosition: Vector2, isClient: boolean) {
     // if(createdMap.checkOccupiedByVector2(initialPosition)) return;
     this.id = id;
@@ -226,67 +263,238 @@ class Character {
     this.characterSpriteHtmlElement.classList.add('character_spritesheet');
     this.characterHtmlElement.append(this.characterSpriteHtmlElement);
     document.getElementById('map')?.append(this.characterHtmlElement);
-    this.Move(initialPosition);
+    this.TryMove(initialPosition);
 
   }
-  async Move(to: Vector2) {
-    // * Check if to position is occupied by something
 
-    if (createdMap.checkOccupiedByVector2(to) === true) return;
+  private canMoveTo(to: Vector2): boolean {
+    if (this.isAttacking === true) return false;
+
+    // set direction even movement fails.
+
+    if (to.x > this.currentPosition.x) {
+
+      this.characterSpriteHtmlElement.setAttribute("facing", "right");
+
+      this.currentDirection = Direction.East;
+    }
+    else if (to.x < this.currentPosition.x) {
+      this.characterSpriteHtmlElement.setAttribute("facing", "left");
+      this.currentDirection = Direction.West;
+    }
+    else if (to.y < this.currentPosition.y) {
+      this.characterSpriteHtmlElement.setAttribute("facing", "up");
+      this.currentDirection = Direction.North;
+    }
+    else if (to.y > this.currentPosition.y) {
+      this.characterSpriteHtmlElement.setAttribute("facing", "down");
+      this.currentDirection = Direction.South;
+    }
+    if (this.isMoving === true) return false;
+    if (createdMap.checkOccupiedByVector2(to) === true) return false;
+    return true;
+  }
+  async TryMove(to: Vector2) {
 
 
+    // ! Check if to position is occupied by something
+    // if (createdMap.checkOccupiedByVector2(to) === true) return;
+    if (this.canMoveTo(to) == false) return;
+
+    // * set previous cell empty
+    // let previousCell = createdMap.getCellByVector2(this.currentPosition);
+    // let nextCell = createdMap.getCellByVector2(to);
     createdMap.setOccupiedCell(this.currentPosition, false);
+    createdMap.getCellByVector2(this.currentPosition)!.setStandingCharacter(undefined);
+    // ^ set next cell to this character and occupied
+
+    createdMap.getCellByVector2(to)!.setStandingCharacter(this);
+    createdMap.setOccupiedCell(to, true);
 
     this.isMoving = true;
     this.currentPosition = to;
 
-    //* 
+    //* animation
     this.characterHtmlElement.style.transform =
       `translate3d(${to.x * CellDistanceOffset}px,${to.y * CellDistanceOffset}px,0px`;
     await new Promise(resolve => setTimeout(resolve, 400));
+
+    //* item check and pick up
+    let item = createdMap.tryGetItemOnCellByVector2(to);
+
+    if (item != null) {
+      this.tryAddItemToInventory(item);
+    }
     this.isMoving = false;
-    createdMap.setOccupiedCell(to, true);
     // console.log('reatedMap.getCellByVector2(to))', createdMap.getCellByVector2(to));
 
   }
+
+  async tryAttack() {
+    if (this.isAttacking == true) return;
+    this.isAttacking = true;
+
+
+    let targetCell = this.getForwardCell();
+
+    this.characterSpriteHtmlElement.setAttribute("attack", "true");
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    if (targetCell != null) {
+      if (targetCell.isOccupied == true) {
+        targetCell.standingCharacter?.damage();
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+    this.characterSpriteHtmlElement.setAttribute("attack", "false");
+    this.isAttacking = false;
+
+
+  }
+
+  async attackAnimation() {
+
+  }
+
+  async damage() {
+    if (this.died == true) return;
+    // ^ damage effect
+
+    // this.characterSpriteHtmlElement.classList.
+    this.hp -= 1;
+    console.log('damaged', this);
+    if (this.hp == 0) {
+      // stun for 3 seconds
+      this.die();
+
+    }
+  }
+
+  async die() {
+    this.characterSpriteHtmlElement.remove();
+
+    this.characterHtmlElement.remove();
+    this.died = true;
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    this.died = false;
+    this.hp = 3;
+  }
+
+  getForwardCell(): Cell | undefined {
+    let output;
+    switch (this.currentDirection) {
+      case Direction.East:
+        output = createdMap.getCellByVector2(new Vector2(this.currentPosition.x + 1, this.currentPosition.y));
+        break;
+      case Direction.North:
+        output = createdMap.getCellByVector2(new Vector2(this.currentPosition.x, this.currentPosition.y - 1));
+
+        break;
+      case Direction.South:
+        output = createdMap.getCellByVector2(new Vector2(this.currentPosition.x, this.currentPosition.y + 1));
+
+        break;
+      case Direction.West:
+        output = createdMap.getCellByVector2(new Vector2(this.currentPosition.x - 1, this.currentPosition.y));
+        break;
+      default:
+        output = undefined;
+        break;
+
+    }
+    return output;
+  }
+
+
+  // TODO
+  tryAddItemToInventory(item: GameObject) {
+    if (item.tryRemoveItemFromWorld() == true) {
+      this.bag.push(item);
+    }
+
+  }
+  getItemInventory() {
+    return this.bag;
+  }
+  useItem() {
+
+  }
+
 }
 
+
+enum InventoryUIState {
+  Idle,
+  ShowingInventory
+}
+// TODO 
+class InventoryManager {
+  inventoryUIOpenButton: HTMLButtonElement;
+  inventoryWindow: HTMLDivElement;
+  inventoryCloseButton: HTMLButtonElement;
+
+  inventoryParentOfItemList: HTMLDivElement;
+
+  currentState: InventoryUIState = InventoryUIState.Idle;
+  constructor() {
+    this.inventoryUIOpenButton = document.getElementById('inventoryUIOpenButton') as HTMLButtonElement;
+    this.inventoryWindow = document.getElementById('inventoryWindow') as HTMLDivElement;
+    this.inventoryCloseButton = document.getElementById('inventoryCloseButton') as HTMLButtonElement;
+    this.inventoryParentOfItemList = document.getElementById('inventoryParentOfItemList') as HTMLDivElement;
+
+    this.inventoryUIOpenButton.onclick = ((ev: MouseEvent) => {
+
+    });
+
+  }
+  doLogicByState() {
+    switch (this.currentState) {
+      case InventoryUIState.Idle:
+        this.ShowInventory(playerCharacter.bag)
+        break;
+    }
+  }
+
+  ShowInventory(bag: GameObject[]) {
+    this.inventoryWindow.style.display = "contents";
+  }
+  Hide() {
+    this.inventoryWindow.style.display = "none";
+  }
+
+  private refreshInventoryItemList(bag: GameObject[]) {
+    Util.deleteAllChildrenHTMLElement(this.inventoryWindow);
+  }
+}
 
 
 //! TEMP CREATE
 
 const createdMap = new MapInfo(0, 0, 10, 10, {});
 console.log('createdMap', createdMap);
-const cell = new Cell(new Vector2(1, 1));
 
 const playerCharacter = new Character("player", new Vector2(2, 2), true);
 const npcCharacter = new Character("npc", new Vector2(0, 1), false);
 
 
-
 const chessGameObject = new GameObject(new Vector2(2, 3), ItemType.chess)
 chessGameObject.setImage("./images/chess512.png");
 
+
+
+
 const map = document.getElementById('map') as HTMLDivElement;
 
-let cameraOffsetX = window.innerWidth / 2 - (CellDistanceOffset / 2);
-let cameraOffsetY = window.innerHeight / 3;
-
-setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y)
 
 
-function setCameraPosition(x: number, y: number) {
-  console.log('playerCharacter.currentPosition', playerCharacter.currentPosition);
-  // map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
-  map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
-}
+
+// * Input Related
 
 function checkKeyInput() {
 
   if (leftPressed) {
     if (playerCharacter.isMoving == false) {
-      playerCharacter.characterSpriteHtmlElement.setAttribute("facing", "left");
-      playerCharacter.Move(new Vector2(playerCharacter.currentPosition.x - 1, playerCharacter.currentPosition.y));
+      playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x - 1, playerCharacter.currentPosition.y));
       // map.style.transform = `translate3d(${-x * CellDistance}px,${-y * CellDistance}px,0px)`;
       setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
@@ -296,30 +504,32 @@ function checkKeyInput() {
   }
   else if (upPressed) {
     if (playerCharacter.isMoving == false) {
-      playerCharacter.characterSpriteHtmlElement.setAttribute("facing", "up");
-      playerCharacter.Move(new Vector2(playerCharacter.currentPosition.x, playerCharacter.currentPosition.y - 1));
+      playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x, playerCharacter.currentPosition.y - 1));
       setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
     }
   }
   else if (rightPressed) {
     if (playerCharacter.isMoving == false) {
-      playerCharacter.characterSpriteHtmlElement.setAttribute("facing", "right");
-      playerCharacter.Move(new Vector2(playerCharacter.currentPosition.x + 1, playerCharacter.currentPosition.y));
+      playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x + 1, playerCharacter.currentPosition.y));
       setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
     }
   }
   else if (downPressed) {
     if (playerCharacter.isMoving == false) {
-      playerCharacter.characterSpriteHtmlElement.setAttribute("facing", "down");
-      playerCharacter.Move(new Vector2(playerCharacter.currentPosition.x, playerCharacter.currentPosition.y + 1));
+      playerCharacter.TryMove(new Vector2(playerCharacter.currentPosition.x, playerCharacter.currentPosition.y + 1));
       setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
 
     }
   }
 
+  else if (attackPressed) {
+    if (playerCharacter.isMoving == false) {
+      playerCharacter.tryAttack();
 
+    }
+  }
 }
 
 
@@ -338,7 +548,13 @@ document.addEventListener("keydown", (e) => {
   if (e.keyCode == 40) {
     downPressed = true;
   }
+  if (e.key === 'a') {
+    console.log("ATTTACCk");
+    attackPressed = true;
+  }
 });
+
+
 let bottomui: HTMLDivElement = document.getElementById("bottomUI") as HTMLDivElement;
 
 bottomui.ontouchstart = ((ev: TouchEvent) => {
@@ -359,6 +575,9 @@ bottomui.ontouchstart = ((ev: TouchEvent) => {
       case "dpadDown":
         downPressed = true;
         break;
+      case "attackButton":
+        attackPressed = true;
+        break;
 
     }
   }
@@ -369,11 +588,10 @@ bottomui.ontouchend = ((ev: TouchEvent) => {
   leftPressed = false;
   rightPressed = false;
   downPressed = false;
+  attackPressed = false;
 });
 
 
-document.addEventListener("click", (e) => {
-})
 
 document.addEventListener("keyup", (e) => {
   if (e.keyCode == 37) {
@@ -388,6 +606,10 @@ document.addEventListener("keyup", (e) => {
   if (e.keyCode == 40) {
     downPressed = false;
   }
+  if (e.key === 'a') {
+    attackPressed = false;
+  }
+
 });
 
 document.addEventListener("keydown", (e) => {
@@ -399,6 +621,7 @@ document.addEventListener("keydown", (e) => {
 
 
 
+// * UPDATE GAME LOOP
 
 const update = () => {
   checkKeyInput();
@@ -415,6 +638,21 @@ const update = () => {
 update(); //kick off the first step!
 
 
+// * Camera Related
+
+let cameraOffsetX = window.innerWidth / 2 - (CellDistanceOffset / 2);
+let cameraOffsetY = window.innerHeight / 3;
+
+setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y)
+
+
+function setCameraPosition(x: number, y: number) {
+  console.log('playerCharacter.currentPosition', playerCharacter.currentPosition);
+  // map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
+  map.style.transform = `translate3d(${x * CellDistanceOffset + cameraOffsetX}px,${y * CellDistanceOffset + cameraOffsetY}px,0)`;
+}
+
+
 function resizeCameraOffset() {
   map.setAttribute("transition", "0.0s linear");
 
@@ -425,4 +663,5 @@ function resizeCameraOffset() {
   setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
   map.setAttribute("transition", "0.4s linear");
 }
+
 window.onresize = resizeCameraOffset;
