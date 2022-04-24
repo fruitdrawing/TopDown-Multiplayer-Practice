@@ -7,7 +7,7 @@ exports.ServerManager = void 0;
 const express_1 = __importDefault(require("express"));
 const socket_io_1 = require("socket.io");
 const http_1 = __importDefault(require("http"));
-const Vector2_1 = require("../topdowncamera/src/TopDown/Vector2");
+const Vector2_1 = require("../client/src/TopDown/Vector2");
 class ServerManager {
     constructor() {
         this.app = (0, express_1.default)();
@@ -19,8 +19,11 @@ class ServerManager {
             }
         });
         this.port = process.env.PORT || 3001;
+        this.app.use(express_1.default.static('client/dist'));
         this.app.listen(this.port, () => {
             console.log(`listening to ${this.port}`);
+            // console.log("11?");
+            // console.log(path.join(__dirname, 'client/dist'));
         });
         this.app.get('/', ((req, res) => {
             console.log('some one?');

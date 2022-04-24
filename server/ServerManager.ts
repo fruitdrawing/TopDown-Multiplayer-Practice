@@ -1,8 +1,8 @@
 import express from 'express';
 import { Server, Socket } from 'socket.io';
 import http from 'http';
-import { Vector2 } from '../topdowncamera/src/TopDown/Vector2'
-
+import { Vector2 } from '../client/src/TopDown/Vector2'
+import path from 'path';
 export class ServerManager {
 
     app = express();
@@ -17,9 +17,12 @@ export class ServerManager {
 
     port = process.env.PORT || 3001;
     constructor() {
-
+        this.app.use(express.static('client/dist'));
         this.app.listen(this.port, () => {
             console.log(`listening to ${this.port}`);
+            // console.log("11?");
+            // console.log(path.join(__dirname, 'client/dist'));
+
         })
 
         this.app.get('/', ((req, res) => {
