@@ -1,3 +1,4 @@
+import { ServerGameManager } from "./ServerGameManager";
 import { ServerManager } from "./ServerManager";
 
-const serverManager = new ServerManager();
+const gm = new ServerGameManager();

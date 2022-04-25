@@ -58,6 +58,17 @@ body {
 
 
 /* CHARACTER */
+
+.wrapper-character {
+  position: absolute;
+  top: -20px;
+  /* display: flex;
+  justify-content: center; */
+  transition: transform 0.4s;
+  transition-timing-function: linear;
+}
+
+
 .character {
   top: -20px;
   width: calc(var(--grid-cell));
@@ -65,10 +76,18 @@ body {
   position: absolute;
   /* background-color: red; */
   overflow: hidden;
-  transition: transform 0.4s;
-  transition-timing-function: linear;
+  /* transition: transform 0.4s; */
+  /* transition-timing-function: linear; */
 }
 
+.displayName {
+  position: absolute;
+  color: greenyellow;
+  -webkit-text-stroke: 0.5px greenyellow;
+  z-index: 2;
+  font-size: medium;
+  transform: translate3d(-20%, -200%, 0);
+}
 
 
 .character_spritesheet {

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "node server/main.js",
-    "test": "nodemon server/main.js",
-    "deploy": "gcloud app deploy"
+    "start": "node server/dist/server/main.js",
+    "test": "npm --prefix ./client/ run build && nodemon server/main.ts",
+    "deploy": "cd server && tsc && cd .. && npm --prefix ./client/ run build && gcloud app deploy"
   },
   "author": "",
   "license": "ISC",
