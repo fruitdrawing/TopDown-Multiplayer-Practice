@@ -8,6 +8,7 @@ import { Vector2 } from "../../server/Vector2";
 
 export class ClientCharacter {
     id: string;
+    displayName: string;
     currentPosition: Vector2 = new Vector2(0, 0);
     private currentDirection: Direction = Direction.South;
     wrapperHtmlElement: HTMLDivElement;
@@ -15,13 +16,13 @@ export class ClientCharacter {
     characterSpriteHtmlElement: HTMLDivElement;
     isMoving: boolean = false;
 
-    playerName: HTMLDivElement;
+
+    displayNameWrapperHTML: HTMLDivElement;
+    displayNameHTML: HTMLParagraphElement;
 
     camera: Camera | undefined = undefined;
-    constructor(id: string, initialPosition: Vector2, authorization: boolean) {
+    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean) {
         this.id = id;
-
-
 
 
 
@@ -40,17 +41,29 @@ export class ClientCharacter {
         this.characterHtmlElement = document.createElement('div');
         this.characterHtmlElement.classList.add('character');
         this.wrapperHtmlElement.append(this.characterHtmlElement);
+
         this.characterSpriteHtmlElement = document.createElement('div');
         this.characterSpriteHtmlElement.classList.add('character_spritesheet');
         this.characterHtmlElement.append(this.characterSpriteHtmlElement);
         document.getElementById('map')?.append(this.wrapperHtmlElement);
 
+        this.displayNameWrapperHTML = document.createElement('div');
+        this.displayNameWrapperHTML.classList.add('displayNameWrapper');
 
-        this.playerName = document.createElement('div');
-        this.playerName.classList.add('displayName');
-        this.wrapperHtmlElement.append(this.playerName);
-        this.SetName(id);
 
+        this.displayNameHTML = document.createElement('p');
+        this.displayNameHTML.classList.add('displayName');
+
+        this.displayNameWrapperHTML.append(this.displayNameHTML)
+
+
+        this.wrapperHtmlElement.append(this.displayNameWrapperHTML);
+
+        // this.wrapperHtmlElement.append(this.displayNameHTML);
+
+
+        this.displayName = displayName;
+        this.SetClientName(displayName)
 
         this.TryMoveAnimation(this.currentPosition);
 
@@ -58,8 +71,14 @@ export class ClientCharacter {
 
     }
 
-    SetName(name: string) {
-        this.playerName.innerText = name;
+    ChangeNameEvent(name: string) {
+        ClientGameManager.clientSocket.sendNameChanged(name);
+    }
+
+
+    SetClientName(name: string) {
+        this.displayName = name;
+        this.displayNameHTML.innerText = name;
     }
 
     SetDirection(direction: Direction) {
@@ -227,5 +246,8 @@ export class ClientCharacter {
 
     //     }
     //     return output;
+    // }
+    // setPlayerDisplayName(name: string) {
+    //     this.SetName
     // }
 }

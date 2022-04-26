@@ -22,19 +22,66 @@
   </style>
 </head>
 
+
+
+
+
+
 <body>
+  <div id="spriteTest"></div>
+  <div id="modalWindowWrapper">
+    <div id="modalWindow">
+      <div id="modalWindowNoticeIcon"></div>
+      <p id="modalWindowText">notice content</p>
+      <button id="modalWindowOkButton" class="primary-button">OK</button>
+    </div>
+  </div>
+
+
   <div id="debugText" style="position : absolute; top : 10px; z-index: 2;"></div>
 
+  <div id="sideMenuWrapper" class="sideMenuWrapper">
+    <div class="sideMenu">
+      <div class="sideMenu-nameInputWrapper">
+        Enter Your Name:
+        <input id="nameInput" class="nameInputBox">
+        <button id="nameSubmitButton" class="primary-button">Submit</button>
+      </div>
+
+
+      <div class="divScroll">
+        <ul>
+          <li><button class="inventoryItemButton">🍌 a banana </button></li>
+          <li><button class="inventoryItemButton">🍎 an apple</button></li>
+          <li><button class="inventoryItemButton">⚔ a sword </button></li>
+          <li><button class="inventoryItemButton">🍾 a bowl </button></li>
+          <li><button class="inventoryItemButton">🔥 a touchlight </button></li>
+          <li><button class="inventoryItemButton">💛 a heart </button></li>
+          <li><button class="inventoryItemButton">🍌 a banana </button></li>
+          <li><button class="inventoryItemButton">🍎 an apple</button></li>
+          <li><button class="inventoryItemButton">⚔ a sword </button></li>
+          <li><button class="inventoryItemButton">🍾 a bowl </button></li>
+          <li><button class="inventoryItemButton">🔥 a touchlight </button></li>
+          <li><button class="inventoryItemButton">💛 a heart </button></li>
+        </ul>
+        sad
+      </div>
+
+
+    </div>
+
+
+  </div>
   <!-- //^ bottom UI -->
   <div id="bottomUI">
     <div class="dpadParent">
       <button id="attackButton" class="emptyDpad dpadButton"
-        style="display : flex; align-items : center; transform : translate3d(-30px,-10px,0); background-color: lightskyblue; vertical-align: middle;">
+        style="display : flex; align-items : center; transform : translate3d(-30px,-10px,0); background-color: lightslategray; vertical-align: middle;">
         <img src="./src/images/fist.png" style="width:50px; height:50px"></button>
       <button id="dpadUp" class="dpadButton">
         <img class="dpadArrow" src="./src/images/uparrow.png"></button>
       <button class="dpadButton"
-        style="transform : translate3d(30px,-10px,0); background-color: lightcyan; vertical-align: middle;"></button>
+        style="transform : translate3d(30px,-10px,0); background-color: lightslategray; vertical-align: middle;"></button>
 
       <button id="dpadLeft" class="dpadButton">
         <img class="dpadArrow" src="./src/images/uparrow.png" style="transform : rotate(-90deg)"></button>
@@ -59,8 +106,13 @@
 
 
 
-  <div class="inventoryButton">=</div>
+  <div id="rightTopMenuButton" class="inventoryButton">=</div>
 
+  <!-- <div id="YesOrNoScreen">
+    <div>
+      <p></p>
+    </div>
+  </div> -->
 
   <script type="module" src="/src/main.ts"></script>
 </body>

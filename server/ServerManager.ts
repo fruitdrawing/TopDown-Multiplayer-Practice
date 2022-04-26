@@ -58,8 +58,8 @@ export class ServerManager {
             console.log('user connected');
 
 
-            ServerGameManager.currentUserList.push(clientSocket.id);
-            console.log("current users:", ServerGameManager.currentUserList);
+            // ServerGameManager.currentUserSocketIdList.push(clientSocket.id);
+            console.log("current users:", ServerGameManager.currentPlayerCharacterList);
 
 
             clientSocket.on('current-serverinfo', () => {
@@ -73,7 +73,7 @@ export class ServerManager {
                 let randomCell = ServerGameManager.currentMapInfo.cellList[Math.floor(Math.random() * ServerGameManager.currentMapInfo.cellList.length)];
                 // let randomCellTwo;
                 console.log(randomCell);
-                let createdChara = new ServerCharacter(socketid, randomCell.position, false);
+                let createdChara = new ServerCharacter(socketid, socketid, randomCell.position, false);
                 // while (randomCell.isOccupied != true) {
                 //     randomCellTwo = ServerGameManager.currentMap.cellList[Math.floor(Math.random() * ServerGameManager.currentMap.cellList.length)];
                 //     if (randomCellTwo != null) {
@@ -83,9 +83,9 @@ export class ServerManager {
                 // let spawnPosition = randomCellTwo?.position;
                 // if (spawnPosition != null) {
                 ServerGameManager.currentPlayerCharacterList.push(createdChara);
-                console.log("current users:", ServerGameManager.currentUserList);
-
-                this.serverio.emit('player-TrySpawn', randomCell.position, socketid);
+                console.log("current users:", ServerGameManager.currentPlayerCharacterList);
+                let displayName = createdChara.displayName;
+                this.serverio.emit('player-TrySpawn', randomCell.position, socketid, displayName);
             });
 
             clientSocket.on('player-TryMove', (direction: Direction) => {
@@ -111,7 +111,21 @@ export class ServerManager {
                     }
                 }
                 //* Check if character availbe to move
+            });
 
+
+
+            clientSocket.on('player-nameChanged', (displayName) => {
+                let character = ServerGameManager.getCharacterById(clientSocket.id);
+                if (character) {
+                    character.displayName = displayName;
+                    this.serverio.emit('player-nameChanged', character.id, displayName);
+                }
+            });
+
+
+            clientSocket.on('ping', () => {
+                clientSocket.emit('pong');
             });
 
 

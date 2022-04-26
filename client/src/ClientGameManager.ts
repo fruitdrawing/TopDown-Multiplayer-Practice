@@ -10,6 +10,7 @@ export class ClientGameManager {
     public static playerCharacter: ClientCharacter | undefined = undefined;
     public static clientSocket: ClientSocketManager = new ClientSocketManager();
     public static inputManager: InputManager = new InputManager();
+
     public static pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
     public static girdCellSize = 120;
     public static CellDistanceOffset: number = 80;
@@ -19,6 +20,7 @@ export class ClientGameManager {
     constructor() {
         this.setupForPreventZoomAndPinchZoom();
         this.updateLoop();
+
         // ClientGameManager.currentMap = new MapInfo(0, 0, 10, 10, {});
     }
 
@@ -33,22 +35,22 @@ export class ClientGameManager {
             this.updateLoop();
         })
     }
-    public static spawnCharacter(id: string, to: Vector2, authorization: boolean) {
+    public static spawnCharacter(id: string, displayName: string, to: Vector2, authorization: boolean) {
         console.log('Spawn New Character !!!! to:', to, authorization);
 
 
         if (this.clientSocket.clientIO.id == id) {
             // * this client's character is spawning
             console.log("player character spawned");
-            ClientGameManager.playerCharacter = new ClientCharacter(id, to, authorization);
+            ClientGameManager.playerCharacter = new ClientCharacter(id, displayName, to, authorization);
             ClientGameManager.currentCharacterList.push(ClientGameManager.playerCharacter);
-            this.inputManager.setupPlayerCharacter(ClientGameManager.playerCharacter);
+            // this.inputManager.setupPlayerCharacter(ClientGameManager.playerCharacter);
             // this.clientSocket.setupPlayerCharacter(ClientGameManager.playerCharacter);
         }
         else {
             // * other client's character
             console.log("!!! new other character spawned");
-            ClientGameManager.currentCharacterList.push(new ClientCharacter(id, to, authorization))
+            ClientGameManager.currentCharacterList.push(new ClientCharacter(id, displayName, to, authorization))
         }
         // this.camera.setPlayerCharacter(ClientGameManager.playerCharacter);
     }

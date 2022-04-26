@@ -14,6 +14,19 @@ html {
   width: 100%;
 }
 
+ul {
+  margin-top: 10px;
+
+  padding-left: 3vh;
+  padding-right: 3vh;
+  list-style-type: none;
+}
+
+li {
+  margin-top: 10px;
+  list-style-type: none
+}
+
 body {
   margin: auto;
   height: 100%;
@@ -62,11 +75,15 @@ body {
 .wrapper-character {
   position: absolute;
   top: -20px;
-  /* display: flex;
-  justify-content: center; */
+  display: flex;
+  justify-content: center;
   transition: transform 0.4s;
   transition-timing-function: linear;
+  width: calc(var(--grid-cell));
+  height: calc(var(--grid-cell));
+
 }
+
 
 
 .character {
@@ -80,13 +97,30 @@ body {
   /* transition-timing-function: linear; */
 }
 
+.displayNameWrapper {
+  width: 250%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+
 .displayName {
-  position: absolute;
-  color: greenyellow;
+  position: relative;
+  color: yellow;
+  font-family: "Gill Sans", sans-serif;
   -webkit-text-stroke: 0.5px greenyellow;
   z-index: 2;
   font-size: medium;
-  transform: translate3d(-20%, -200%, 0);
+  text-align: center;
+  width: 30vh;
+  height: 10vh;
+  margin: 0 auto;
+  padding: 10px;
+  overflow-x: visible;
+  transform: translate3d(0, -50%, 0);
 }
 
 
@@ -320,8 +354,189 @@ body {
   justify-content: center;
   align-items: center;
   font-size: xx-large;
+  z-index: 10;
+
 }
 
 .inventoryButton:hover {
   background-color: lightgreen;
+}
+
+
+
+
+
+
+.sideMenuWrapper {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(229, 229, 229, 0);
+  z-index: 6;
+
+  display: flex;
+  justify-content: right;
+  float: right;
+  transition: 0.13s;
+
+}
+
+.sideMenu {
+  box-shadow: -10px -10px 10px 0px rgba(0, 0, 0, 0.7);
+  top: 50px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+
+  height: 100%;
+  width: 90%;
+  background-color: #313C50;
+  line-height: 3em;
+  /* background-image: url("./images/character2.png"); */
+}
+
+
+.sideMenu-nameInputWrapper {
+  background-color: darkslateblue;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 15vh;
+  display: flex;
+  justify-content: center;
+  color: white;
+  gap: 5%;
+  height: 30%;
+
+}
+
+.sideMenuWrapper[showSideMenu="true"] {
+  transform: translateX(0%);
+}
+
+.sideMenuWrapper[showSideMenu="false"] {
+  transform: translateX(100%);
+}
+
+.primary-button {
+  background-color: greenyellow;
+  color: black;
+  border-radius: 0px;
+  outline-width: 0px;
+  width: 9vh;
+  height: 5vh;
+  border: 0px;
+  font-weight: bolder;
+}
+
+.primary-button:hover {
+  background-color: orange;
+}
+
+.nameInputBox {
+  height: 4vh;
+  display: block;
+}
+
+.divScroll {
+  margin: 4px, 4px;
+  padding: 4px;
+  background-color: darkslateblue;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  text-align: justify;
+}
+
+.inventoryItemButton {
+  background-color: rgba(255, 255, 255, 0.1);
+  width: 100%;
+  height: 13vh;
+  border-radius: 10px;
+  border-width: 2px;
+  color: white;
+  text-align: left;
+  font-size: xx-large;
+}
+
+
+
+#modalWindowWrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#modalWindow {
+  width: 80%;
+  height: 80%;
+  background-color: darkslateblue;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 5vh;
+  box-shadow: 3px 5px 10px 10px rgba(0, 0, 0, 0.3);
+}
+
+#modalWindowText {
+  color: white;
+  margin: 5vh;
+  font-size: xx-large;
+}
+
+
+#modalWindowWrapper[showModalWindow="true"] {
+  transform: translateX(0%);
+}
+
+#modalWindowWrapper[showModalWindow="false"] {
+  transform: translateX(100%);
+}
+
+#modalWindowNoticeIcon {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 10px;
+  width: 15vh;
+  height: 15vh;
+  background-size: 100%;
+}
+
+#modalWindowNoticeIcon[error="true"] {
+  background-image: url(./images/errorIcon.png);
+}
+
+#modalWindowNoticeIcon[error="false"] {
+  background-image: url(./images/okIcon.png);
+
+}
+
+.pingPong {
+  position: fixed;
+  color: yellow;
+  right: 50px;
+  bottom: 0px;
+  background-color: black;
+}
+
+#spriteTest {
+  position: fixed;
+  right: 50%;
+  bottom: 50%;
+
+  width: 100%;
+  height: 100%;
+  background-image: url("./images/Premade_Character_48x48_11.png");
+  z-index: 10;
+  image-rendering: pixelated;
+
 }

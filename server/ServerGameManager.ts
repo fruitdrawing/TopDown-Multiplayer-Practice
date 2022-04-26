@@ -6,7 +6,7 @@ export class ServerGameManager {
     public static currentPlayerCharacterList: ServerCharacter[] = [];
     public static serverSocketManager: ServerManager = new ServerManager();
 
-    public static currentUserList: string[] = [];
+    // public static currentUserSocketIdList: string[] = [];
 
     public static currentMapInfo: ServerMapInfo = new ServerMapInfo(0, 0, 10, 10, {});
 

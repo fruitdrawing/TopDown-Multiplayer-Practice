@@ -1,9 +1,7 @@
 import { ClientCharacter } from "./ClientCharacter";
-// import { ClientSocketManager } from "./ClientSocket";
 import { Direction } from "./Enums";
-
 import { ClientGameManager } from "./ClientGameManager";
-import { Vector2 } from "../../server/Vector2";
+import { addSyntheticLeadingComment } from "typescript";
 
 export class InputManager {
 
@@ -13,7 +11,24 @@ export class InputManager {
     upPressed: boolean = false;
     downPressed: boolean = false;
     attackPressed: boolean = false;
+
+
     bottomui: HTMLDivElement = document.getElementById("bottomUI") as HTMLDivElement;
+
+    menuButtonUI: HTMLButtonElement = document.getElementById("rightTopMenuButton") as HTMLButtonElement;
+    nameSubmitButton: HTMLButtonElement = document.getElementById("nameSubmitButton") as HTMLButtonElement;
+    nameInput: HTMLInputElement = document.getElementById("nameInput") as HTMLInputElement;
+    sideMenuWrapper: HTMLDivElement = document.getElementById("sideMenuWrapper") as HTMLDivElement;
+
+    modalWindowWrapper: HTMLDivElement = document.getElementById("modalWindowWrapper") as HTMLDivElement;
+    modalWindow: HTMLDivElement = document.getElementById("modalWindow") as HTMLDivElement;
+    modalWindowText: HTMLDivElement = document.getElementById("modalWindowText") as HTMLDivElement;
+    modalWindowOkButton: HTMLDivElement = document.getElementById("modalWindowOkButton") as HTMLDivElement;
+
+    modalWindowNoticeIcon: HTMLDivElement = document.getElementById("modalWindowNoticeIcon") as HTMLDivElement;
+
+    modalWindowBool: boolean = false;;
+    sideMenuBool: boolean = false;
 
 
     canSendInput: boolean = true;
@@ -21,20 +36,35 @@ export class InputManager {
 
     // clientSocketManager: ClientSocketManager | undefined = undefined;
     constructor() {
+
         this.checkKeyInput();
         this.setupKeyDownEvent();
         this.onTouchStartEventSetup();
         this.onTouchEndEventSetup();
         this.setKeyUpEventSetup();
+
+
+
+        this.nameButtonBehaviorSetup();
+
+        this.sideMenuWrapper.setAttribute('showSideMenu', 'false');
+
+        this.menuButtonUI.addEventListener('click', () => {
+            this.showSideMenu();
+        });
+
+        this.modalWindowWrapper.setAttribute("showModalWindow", "false")
+
+        // * Closing Modal window
+        this.modalWindowOkButton.addEventListener('click', () => {
+            this.showModal(" ", false);
+        });
+
     }
 
-    setupPlayerCharacter(character: ClientCharacter) {
-        // ClientGameManager.playerCharacter = character;
-        // ClientGameManager.clientSocket = ClientGameManager.clientSocket;
-    }
     public async checkKeyInput() {
         if (this.canSendInput == false) return;
-        if (ClientGameManager.playerCharacter) {
+        if (ClientGameManager.playerCharacter != undefined) {
             if (ClientGameManager.playerCharacter.isMoving == true) return;
         }
         console.log('checkKeyInput')
@@ -199,7 +229,47 @@ export class InputManager {
         });
 
     }
+    showSideMenu() {
+        if (this.sideMenuBool == false) {
+            this.sideMenuWrapper.setAttribute('showSideMenu', 'true');
+            this.sideMenuBool = true;
+        }
+        else {
+            this.sideMenuWrapper.setAttribute('showSideMenu', 'false');
+            this.sideMenuBool = false;
+        }
+    }
+    nameButtonBehaviorSetup() {
+        this.nameSubmitButton.addEventListener('click', () => {
+            if (this.nameInput.value.length < 3) {
+                this.showModal("Too short!", true);
+            }
+            else {
+                console.log('clicked name changed');
+                ClientGameManager.playerCharacter?.ChangeNameEvent(this.nameInput.value);
+                this.showModal("You've just changed your name to : " + this.nameInput.value, false);
+                this.nameInput.value = "";
+            }
 
+        });
+    }
 
-
+    showModal(text: string, error: boolean) {
+        console.log("show mOdlaw");
+        if (this.modalWindowBool == true) {
+            this.modalWindowWrapper.setAttribute("showModalWindow", "false")
+            this.modalWindowBool = false;
+        }
+        else {
+            this.modalWindowWrapper.setAttribute("showModalWindow", "true");
+            if (error == true) {
+                this.modalWindowNoticeIcon.setAttribute("error", "true");
+            }
+            else {
+                this.modalWindowNoticeIcon.setAttribute("error", "false");
+            }
+            this.modalWindowText.innerText = text;
+            this.modalWindowBool = true;
+        }
+    }
 }

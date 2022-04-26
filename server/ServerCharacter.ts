@@ -6,6 +6,7 @@ import { Vector2 } from "./Vector2";
 
 export class ServerCharacter {
     id: string;
+    displayName: string;
     isClient: boolean;
     currentPosition: Vector2 = new Vector2(0, 0);
     currentDirection: Direction = Direction.South;
@@ -16,10 +17,11 @@ export class ServerCharacter {
     died: boolean = false;
     // camera: Camera = GameManager.camera;
     bag: ServerItem[] = [];
-    constructor(id: string, initialPosition: Vector2, authorization: boolean) {
+    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean) {
 
         // if(createdMap.checkOccupiedByVector2(initialPosition)) return;
         this.id = id;
+        this.displayName = displayName;
         this.isClient = authorization;
         // if (authorization == true) {
         //     this.camera.characterToFocus = this;

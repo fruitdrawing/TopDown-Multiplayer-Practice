@@ -7,6 +7,7 @@ import { Vector2 } from "../../server/Vector2";
 import { Item } from './Item';
 // import { GameManager } from './GameManager';
 import { ClientGameManager } from './ClientGameManager';
+import { IfvisibleManager } from './IfvisibleManager';
 // if (navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i)) {
 //   /* iOS hides Safari address bar */
 //   window.addEventListener("load", function () {
@@ -24,6 +25,8 @@ import { ClientGameManager } from './ClientGameManager';
 const gm = new ClientGameManager();
 
 
+
+const ifvisible = new IfvisibleManager();
 
 
 
