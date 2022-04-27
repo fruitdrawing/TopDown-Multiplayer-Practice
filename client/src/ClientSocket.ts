@@ -9,7 +9,8 @@ import { ServerCharacter } from "../../server/ServerCharacter";
 
 
 export class ClientSocketManager {
-    clientIO: Socket = io("http://localhost:3001");
+    //"http://localhost:3001"
+    clientIO: Socket = io("http://172.30.1.56:3001/", { transports: ['websocket'], upgrade: false });
 
     pingHtml: HTMLParagraphElement | undefined = undefined;
     latency: number = 0;
@@ -107,8 +108,27 @@ export class ClientSocketManager {
         });
 
 
+        this.clientIO.on('player-TryAttack', (whoId: string, direction: Direction) => {
+            let who = ClientGameManager.getCharacterBySocketId(whoId);
+            if (who) {
+                if (who.isAttacking == false)
+                    who.attackAnimation();
+            }
+        });
 
 
+        this.clientIO.on('DamageCharacter', (DamageCharacterId: string) => {
+            let found = ClientGameManager.getCharacterBySocketId(DamageCharacterId);
+            if (found) {
+                found.damageAnimation();
+            }
+        });
+        this.clientIO.on('deadCharacter', (DeadCharacterId: string) => {
+            let found = ClientGameManager.getCharacterBySocketId(DeadCharacterId);
+            if (found) {
+                found.die();
+            }
+        });
 
 
         this.pingPong();
@@ -137,7 +157,6 @@ export class ClientSocketManager {
 
         this.clientIO.on('pong', () => {
             this.latency = Date.now() - this.startTime;
-            console.log(this.latency.toString());
             let pinghtml = this.pingHtml;
             if (pinghtml) {
                 pinghtml.innerText = this.latency.toString() + "ms";

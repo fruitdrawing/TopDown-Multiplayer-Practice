@@ -59,7 +59,9 @@ export class ClientGameManager {
 
 
 
-
+    public static getCharacterBySocketId(id: string) {
+        return ClientGameManager.currentCharacterList.find(c => c.id == id);
+    }
     private setupForPreventZoomAndPinchZoom() {
 
         // * prevent double tap zoom

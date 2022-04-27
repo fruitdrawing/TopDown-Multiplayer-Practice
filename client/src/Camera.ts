@@ -9,7 +9,9 @@ export class Camera {
     cameraOffsetY = window.innerHeight / 3;
     map: HTMLDivElement = document.getElementById('map') as HTMLDivElement;
     constructor(character: ClientCharacter) {
-        window.onresize = this.resizeCameraOffset;
+        window.addEventListener('resize', this.resizeCameraOffset);
+        // window.onresize = this.resizeCameraOffset;
+        console.log('123');
         this.characterToFocus = character;
     }
     // setPlayerCharacter(character: ClientCharacter) {

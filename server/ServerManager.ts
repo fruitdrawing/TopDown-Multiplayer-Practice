@@ -49,6 +49,12 @@ export class ServerManager {
     }
 
 
+    async tryAttack(character: ServerCharacter, direction: Direction) {
+        await character.tryAttack();
+
+    }
+
+
 
     socketIOSetup() {
         this.serverio.on("connection", (clientSocket) => {
@@ -115,6 +121,25 @@ export class ServerManager {
 
 
 
+            clientSocket.on('player-TryAttack', (direction: Direction) => {
+
+                if (ServerGameManager.getCharacterById(clientSocket.id)?.isAttacking == false) {
+                    this.serverio.emit('player-TryAttack', clientSocket.id, direction);
+                    console.log('player-TryAttack emited from client');
+                    // * Check if the character can attack
+                    let goingToAttackCharacter = ServerGameManager.getCharacterById(clientSocket.id);
+                    // if can, attack,
+
+                    // if succes, damage the target
+                    if (goingToAttackCharacter) {
+                        goingToAttackCharacter.tryAttack();
+                    }
+                }
+            });
+
+
+
+
             clientSocket.on('player-nameChanged', (displayName) => {
                 let character = ServerGameManager.getCharacterById(clientSocket.id);
                 if (character) {
@@ -135,9 +160,9 @@ export class ServerManager {
                 console.log('socket : ', socket)
                 console.log('clientSocket', clientSocket.id)
                 // ! remove user from list
-                let willDeleteCharacter = ServerGameManager.currentPlayerCharacterList.find(ch => ch.id == clientSocket.id);
-                if (willDeleteCharacter) {
-                    let wasStandingCell = ServerGameManager.currentMapInfo.getCellByVector2(willDeleteCharacter.currentPosition);
+                let willBeDeleteCharacter = ServerGameManager.currentPlayerCharacterList.find(ch => ch.id == clientSocket.id);
+                if (willBeDeleteCharacter) {
+                    let wasStandingCell = ServerGameManager.currentMapInfo.getCellByVector2(willBeDeleteCharacter.currentPosition);
                     if (wasStandingCell) {
                         // * empty the cell someone was standing
 

@@ -16,7 +16,7 @@ export class ClientCharacter {
     characterSpriteHtmlElement: HTMLDivElement;
     isMoving: boolean = false;
 
-
+    isAttacking: boolean = false;
     displayNameWrapperHTML: HTMLDivElement;
     displayNameHTML: HTMLParagraphElement;
 
@@ -107,6 +107,8 @@ export class ClientCharacter {
 
     async TryMoveAnimation(to: Vector2) {
 
+        this.isMoving = true;
+
         if (to.x > this.currentPosition.x && to.y == this.currentPosition.y) {
             this.SetDirection(Direction.East)
         }
@@ -136,7 +138,6 @@ export class ClientCharacter {
         // GameManager.currentMap.getCellByVector2(to)!.setStandingCharacter(this);
         // GameManager.currentMap.setOccupiedCell(to, true);
 
-        this.isMoving = true;
         this.currentPosition = to;
         //^ Camera
         // this.camera.setCameraPosition(-to.x, -to.y);
@@ -160,8 +161,8 @@ export class ClientCharacter {
     }
 
     public async tryAttack() {
-        // if (this.isAttacking == true) return;
-        // this.isAttacking = true;
+        if (this.isAttacking == true) return;
+        this.isAttacking = true;
 
 
         // let targetCell = this.getForwardCell();
@@ -170,6 +171,26 @@ export class ClientCharacter {
         this.characterSpriteHtmlElement.classList.add('character_spritesheet');
 
         this.characterSpriteHtmlElement.setAttribute("attack", "true");
+
+
+        console.log("tryAttack");
+        switch (this.getCurrentDirection()) {
+            case Direction.West:
+                this.characterHtmlElement.setAttribute("action", "west");
+                break;
+            case Direction.North:
+                this.characterHtmlElement.setAttribute("action", "north");
+
+                break;
+            case Direction.East:
+                this.characterHtmlElement.setAttribute("action", "east");
+
+                break;
+            case Direction.South:
+                this.characterHtmlElement.setAttribute("action", "south");
+
+                break;
+        }
 
         await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -180,24 +201,70 @@ export class ClientCharacter {
         //     }
         // }
         await new Promise(resolve => setTimeout(resolve, 500));
+        this.characterHtmlElement.setAttribute("action", "false");
+
         this.characterSpriteHtmlElement.setAttribute("attack", "false");
-        // this.isAttacking = false;
+        this.isAttacking = false;
         this.characterSpriteHtmlElement.style.setProperty('animation-iteration-count', 'infinite')
 
     }
 
     async attackAnimation() {
+        if (this.isAttacking == true) return;
+        this.isAttacking = true;
+
+
+        // let targetCell = this.getForwardCell();
+        this.characterSpriteHtmlElement.classList.remove('character_spritesheet');
+        void this.characterSpriteHtmlElement.offsetWidth;
+        this.characterSpriteHtmlElement.classList.add('character_spritesheet');
+
+
+        this.characterSpriteHtmlElement.setAttribute("attack", "true");
+
+        console.log("tryAttack");
+        switch (this.getCurrentDirection()) {
+            case Direction.West:
+                this.characterHtmlElement.setAttribute("action", "west");
+                break;
+            case Direction.North:
+                this.characterHtmlElement.setAttribute("action", "north");
+
+                break;
+            case Direction.East:
+                this.characterHtmlElement.setAttribute("action", "east");
+
+                break;
+            case Direction.South:
+                this.characterHtmlElement.setAttribute("action", "south");
+
+                break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // if (targetCell != null) {
+        //     if (targetCell.isOccupied == true) {
+        //         if (targetCell.standingCharacter?.died == false)
+        //             targetCell.standingCharacter?.damage();
+        //     }
+        // }
+        await new Promise(resolve => setTimeout(resolve, 500));
+        this.characterHtmlElement.setAttribute("action", "false");
+
+        this.characterSpriteHtmlElement.setAttribute("attack", "false");
+        this.characterSpriteHtmlElement.style.setProperty('animation-iteration-count', 'infinite')
+        this.isAttacking = false;
 
     }
 
-    async damage() {
+    async damageAnimation() {
         // if (this.died == true) return;
         // ^ damage effect
         this.characterSpriteHtmlElement.setAttribute('damage', 'true');
 
         // this.characterSpriteHtmlElement.classList.
         // this.hp -= 1;
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 300));
         this.characterSpriteHtmlElement.setAttribute('damage', 'false');
 
         // console.log('damaged', this);
@@ -227,7 +294,7 @@ export class ClientCharacter {
     //     let output;
     //     switch (this.currentDirection) {
     //         case Direction.East:
-    //             output = GameManager.currentMap.getCellByVector2(new Vector2(this.currentPosition.x + 1, this.currentPosition.y));
+    //             output = ClientGameManager.currentMap.getCellByVector2(new Vector2(this.currentPosition.x + 1, this.currentPosition.y));
     //             break;
     //         case Direction.North:
     //             output = GameManager.currentMap.getCellByVector2(new Vector2(this.currentPosition.x, this.currentPosition.y - 1));
@@ -247,7 +314,11 @@ export class ClientCharacter {
     //     }
     //     return output;
     // }
-    // setPlayerDisplayName(name: string) {
-    //     this.SetName
-    // }
+    setPlayerDisplayName(name: string) {
+        // this.SetName
+    }
+
+    getCurrentDirection() {
+        return this.currentDirection;
+    }
 }

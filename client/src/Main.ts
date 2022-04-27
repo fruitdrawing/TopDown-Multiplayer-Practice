@@ -26,7 +26,7 @@ const gm = new ClientGameManager();
 
 
 
-const ifvisible = new IfvisibleManager();
+// const ifvisible = new IfvisibleManager();
 
 
 
