@@ -66,8 +66,6 @@ export class InputManager {
 
     public async checkKeyInput() {
 
-
-
         if (this.canSendInputFunc() == false) return;
         if (ClientGameManager.playerCharacter != undefined) {
             if (ClientGameManager.playerCharacter.isMoving == true) return;
@@ -82,7 +80,9 @@ export class InputManager {
                 if (ClientGameManager.clientSocket != null) {
                     ClientGameManager.clientSocket.clientIO.emit('player-TryMove', Direction.West);
                 }
-
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, 300));
+                this.canSendInput = true;
                 // map.style.transform = `translate3d(${-playerCharacter.currentPosition.x * CellDistance}px,${-playerCharacter.currentPosition.y * CellDistance}px,0)`;
             }
 
@@ -94,7 +94,9 @@ export class InputManager {
                 }
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x, this.myCharacter.currentPosition.y - 1));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
-
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, 300));
+                this.canSendInput = true;
             }
         }
         else if (this.rightPressed) {
@@ -105,7 +107,9 @@ export class InputManager {
                 }
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x + 1, this.myCharacter.currentPosition.y));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
-
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, 300));
+                this.canSendInput = true;
             }
         }
         else if (this.downPressed) {
@@ -115,7 +119,9 @@ export class InputManager {
                 }
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x + 1, this.myCharacter.currentPosition.y));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
-
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, 300));
+                this.canSendInput = true;
             }
         }
 
@@ -123,12 +129,11 @@ export class InputManager {
             if (ClientGameManager.playerCharacter.isMoving == false) {
                 // ClientGameManager.playerCharacter.tryAttack();
                 ClientGameManager.clientSocket.clientIO.emit('player-TryAttack', ClientGameManager.playerCharacter.getCurrentDirection());
-
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, 300));
+                this.canSendInput = true;
             }
         }
-        this.canSendInput = false;
-        await new Promise(resolve => setTimeout(resolve, 300));
-        this.canSendInput = true;
 
     }
 
@@ -249,6 +254,7 @@ export class InputManager {
                 this.attackPressed = false;
             }
             if (e.key === 't') {
+                console.log(ClientGameManager.currentCharacterList);
             }
 
         });

@@ -1,13 +1,12 @@
-import { ItemType } from "./Enums";
+import { ItemOccupyType, ItemType } from "./Enums";
 // import { GameManager } from "./GameManager";
 import { Vector2 } from "../../server/Vector2";
 
 
-export class Item {
+export class ClientItem {
     position: Vector2;
     imgElement: HTMLDivElement;
     itemType: ItemType = ItemType.chess;
-
     constructor(position: Vector2, itemType: ItemType) {
         this.position = position;
         this.imgElement = document.createElement('div') as HTMLDivElement;
@@ -40,6 +39,15 @@ export class Item {
         // }
         return false;
     }
+
+    beEaten() {
+
+    }
+
+    bePicked() {
+
+    }
+
 
     private removeImageElementFromWorld() {
         this.imgElement.remove();

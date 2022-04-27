@@ -1,4 +1,4 @@
-import { ItemType } from "../client/src/Enums";
+import { ItemOccupyType, ItemType } from "../client/src/Enums";
 import { Vector2 } from "./Vector2";
 
 export class ServerItem {
@@ -6,6 +6,7 @@ export class ServerItem {
     position: Vector2;
     imgElement: HTMLDivElement;
     itemType: ItemType = ItemType.chess;
+    itemOccupyType: ItemOccupyType = ItemOccupyType.none;
 
     constructor(position: Vector2, itemType: ItemType) {
         this.position = position;

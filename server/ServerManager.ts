@@ -27,6 +27,10 @@ export class ServerManager {
     constructor() {
         this.app.use(express.static('client/dist'));
 
+        this.app.get('/c', (req, res) => {
+            res.send(`currentPlayerCharacterList: ${JSON.stringify(ServerGameManager.currentPlayerCharacterList.map(c => c.id))}`);
+
+        });
         this.server.listen(this.port, () => {
             console.log(`listening to ${this.port}`);
         })
@@ -89,25 +93,26 @@ export class ServerManager {
                 // let spawnPosition = randomCellTwo?.position;
                 // if (spawnPosition != null) {
                 ServerGameManager.currentPlayerCharacterList.push(createdChara);
-                console.log("current users:", ServerGameManager.currentPlayerCharacterList);
+                // console.log("current users:", ServerGameManager.currentPlayerCharacterList);
                 let displayName = createdChara.displayName;
                 this.serverio.emit('player-TrySpawn', randomCell.position, socketid, displayName);
             });
 
             clientSocket.on('player-TryMove', (direction: Direction) => {
-                console.log(direction, clientSocket.id);
+                // console.log(direction, clientSocket.id);
+                console.log('tried move!');
 
                 let requestedPlayer = ServerGameManager.getCharacterById(clientSocket.id);
-                console.log(requestedPlayer);
+                // console.log(requestedPlayer);
                 let cellByDirection = requestedPlayer?.getCellByDirection(direction);
-                console.log(cellByDirection);
+                // console.log(cellByDirection);
                 if (cellByDirection != null) {
                     if (cellByDirection.isOccupied == false) {
                         if (requestedPlayer) {
                             if (requestedPlayer.canMoveTo(cellByDirection.position)) {
                                 ServerGameManager.getCharacterById(clientSocket.id)?.TryMove(cellByDirection.position);
-                                console.log('try move to :',)
-                                this.serverio.emit('player-TryMove', cellByDirection.position, clientSocket.id);
+                                console.log('try move to :', cellByDirection.position)
+                                this.serverio.emit('player-TryMoveAnimation', cellByDirection.position, clientSocket.id);
                             }
                             else {
                                 // * fail
@@ -170,11 +175,12 @@ export class ServerManager {
                         wasStandingCell.isOccupied = false;
                     }
 
+                    // ! null can be occupied by ghost
                     // this.removeArray(ServerGameManager.currentPlayerCharacterList, foundCharacter);
-                    ServerGameManager.currentPlayerCharacterList = ServerGameManager.currentPlayerCharacterList.filter(c => c.id != clientSocket.id);
+                    ServerGameManager.currentPlayerCharacterList = ServerGameManager.currentPlayerCharacterList.filter(c => c.id != clientSocket.id && c.id != null);
                     this.serverio.emit('disconnect-fromserver', clientSocket.id);
                 }
-                console.log("current users:", ServerGameManager.currentPlayerCharacterList);
+                // console.log("current users:", ServerGameManager.currentPlayerCharacterList);
             })
 
         });

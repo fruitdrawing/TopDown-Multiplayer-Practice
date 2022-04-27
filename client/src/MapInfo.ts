@@ -1,5 +1,5 @@
 import { Cell } from "./Cell";
-import { Item } from "./Item";
+import { ClientItem } from "./ClientItem";
 import { Vector2 } from "../../server/Vector2";
 
 
@@ -46,10 +46,10 @@ export class MapInfo {
     getCellByVector2(position: Vector2): Cell | undefined {
         return this.cellList.find(c => c.position.x === position.x && c.position.y === position.y);
     }
-    tryGetItemOnCellByVector2(position: Vector2): Item | undefined {
+    tryGetItemOnCellByVector2(position: Vector2): ClientItem | undefined {
         let foundCell = this.getCellByVector2(position);
         if (foundCell != null) {
-            return foundCell.hasItem;
+            return foundCell.hasFirstLayerItem;
         }
         return undefined;
     }

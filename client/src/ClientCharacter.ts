@@ -2,7 +2,7 @@ import { Camera } from "./Camera";
 import { Cell } from "./Cell";
 import { Direction } from "./Enums";
 import { ClientGameManager } from "./ClientGameManager";
-import { Item } from "./Item";
+import { ClientItem } from "./ClientItem";
 import { Vector2 } from "../../server/Vector2";
 // import { ServerCharacter } from "../../server/ServerCharacter";
 
@@ -14,6 +14,7 @@ export class ClientCharacter {
     wrapperHtmlElement: HTMLDivElement;
     characterHtmlElement: HTMLDivElement;
     characterSpriteHtmlElement: HTMLDivElement;
+    shadowHtmlElement: HTMLDivElement;
     isMoving: boolean = false;
 
     isAttacking: boolean = false;
@@ -62,12 +63,18 @@ export class ClientCharacter {
         // this.wrapperHtmlElement.append(this.displayNameHTML);
 
 
+
+
         this.displayName = displayName;
         this.SetClientName(displayName)
 
         this.TryMoveAnimation(this.currentPosition);
 
 
+        // * shadow
+        this.shadowHtmlElement = document.createElement('div');
+        this.shadowHtmlElement.classList.add("characterShadow");
+        this.characterHtmlElement.prepend(this.shadowHtmlElement);
 
     }
 

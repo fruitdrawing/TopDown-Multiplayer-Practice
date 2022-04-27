@@ -10,8 +10,11 @@ import { ServerCharacter } from "../../server/ServerCharacter";
 
 export class ClientSocketManager {
     //"http://localhost:3001"
-    clientIO: Socket = io("http://172.30.1.56:3001/", { transports: ['websocket'], upgrade: false });
+    // "http://172.30.1.56:3001/"
+    //"http://192.168.123.107:3001/",
+    clientIO: Socket = io("http://localhost:3001", { transports: ['websocket'], upgrade: false });
 
+    connectionStatusHtml: HTMLDivElement | undefined = undefined;
     pingHtml: HTMLParagraphElement | undefined = undefined;
     latency: number = 0;
     startTime: number = 0;
@@ -20,10 +23,24 @@ export class ClientSocketManager {
     constructor() {
         console.log('ClientSocketManager', this.clientIO);
         this.Init();
+
+
+        this.connectionStatusHtml = document.createElement('div');
+        this.connectionStatusHtml.classList.add('connectionStatus');
+        document.body.append(this.connectionStatusHtml);
+
         this.pingHtml = document.createElement('p');
         this.pingHtml.classList.add('pingPong');
         document.body.append(this.pingHtml);
+        setInterval(() => {
+            if (this.clientIO.connected) {
+                this.connectionStatusHtml!.setAttribute("connected", "true");
+            }
+            else {
+                this.connectionStatusHtml!.setAttribute("connected", "false");
 
+            }
+        }, 1000);
     }
     // setupPlayerCharacter(ch) {
     // this.myCharacter = ClientGameManager.playerCharacter;
@@ -66,7 +83,7 @@ export class ClientSocketManager {
 
 
 
-        this.clientIO.on('player-TryMove', (to: Vector2, id: string) => {
+        this.clientIO.on('player-TryMoveAnimation', (to: Vector2, id: string) => {
             let otherCH = ClientGameManager.currentCharacterList.find(ch => ch.id == id);
             if (otherCH != null) {
                 otherCH.TryMoveAnimation(to);
@@ -98,6 +115,7 @@ export class ClientSocketManager {
 
         this.clientIO.on('player-TrySpawn', (to: Vector2, socketid: string, displayName: string) => {
             console.log('spawn position from server', to)
+            if (socketid == null) return;
             console.log(`this.clientIO.id :${this.clientIO.id},     socketid:${socketid}`)
             if (this.clientIO.id == socketid) {
                 ClientGameManager.spawnCharacter(socketid, displayName, to, true);

@@ -4,7 +4,7 @@ import { io, Socket } from "socket.io-client";
 import sizeof from 'object-sizeof'
 import { Vector2 } from "../../server/Vector2";
 
-import { Item } from './Item';
+import { ClientItem } from './ClientItem';
 // import { GameManager } from './GameManager';
 import { ClientGameManager } from './ClientGameManager';
 import { IfvisibleManager } from './IfvisibleManager';

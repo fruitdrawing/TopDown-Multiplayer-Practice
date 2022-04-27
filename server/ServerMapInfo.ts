@@ -37,7 +37,7 @@ export class ServerMapInfo {
     }
     checkOccupiedByVector2(position: Vector2): boolean {
         let found = this.cellList.find(c => c.position.x === position.x && c.position.y === position.y)
-        console.log('found', found);
+        // console.log('found', found);
         if (found != undefined) {
             return found.isOccupied
         }
@@ -51,7 +51,7 @@ export class ServerMapInfo {
     tryGetItemOnCellByVector2(position: Vector2): ServerItem | undefined {
         let foundCell = this.getCellByVector2(position);
         if (foundCell != null) {
-            return foundCell.hasItem;
+            return foundCell.hasFirstLayerItem;
         }
         return undefined;
     }

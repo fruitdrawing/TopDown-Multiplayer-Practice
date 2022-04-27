@@ -1,3 +1,4 @@
+import { ItemType } from "../client/src/Enums";
 import { ServerCharacter } from "./ServerCharacter";
 import { ServerItem } from "./ServerItem";
 import { Vector2 } from "./Vector2";
@@ -6,7 +7,9 @@ export class ServerCell {
     position: Vector2;
     // htmlElement: HTMLDivElement;
     isOccupied: boolean = false;
-    hasItem: ServerItem | undefined = undefined;
+    hasFirstLayerItem: ServerItem | undefined = undefined;
+    hasSecondaryLayerItem: ServerItem | undefined = undefined;
+
     standingCharacter: ServerCharacter | undefined = undefined;
     constructor(vector2: Vector2) {
         this.position = vector2;
@@ -26,5 +29,19 @@ export class ServerCell {
     }
     setStandingCharacter(character: ServerCharacter | undefined) {
         this.standingCharacter = character;
+    }
+
+    hasPickableItem(): boolean {
+        if (this.hasFirstLayerItem != undefined) {
+            if (this.hasSecondaryLayerItem != undefined) {
+                // if (this.hasSecondaryLayerItem.itemType == ItemType.)
+            }
+
+            return false;
+        }
+        if (this.hasFirstLayerItem != ItemType.table)
+            return true;
+
+        return false;
     }
 }

@@ -1,5 +1,5 @@
 :root {
-  --pixel-size: 1.3px;
+  --pixel-size: 1.5px;
   --grid-cell: calc(var(--pixel-size) * 60);
   --bg: black;
 
@@ -66,12 +66,15 @@ body {
   height: calc(var(--grid-cell)*20);
   background-size: 100%;
   /* animation-direction: alternate; */
-  transition: transform 0.4s;
+  transition: all 0.4s;
   transition-timing-function: linear;
   transition-property: initial;
   -webkit-transition: -webkit-transform 400ms linear;
   -moz-transition: transform 400ms linear;
   -o-transition: transform 400ms linear;
+  -webkit-transition-duration: 400ms;
+
+  animation-play-state: paused;
   transition-delay: 1ms;
   position: relative;
   /* -webkit-transform: translate3d(0, 0, 0); */
@@ -90,10 +93,12 @@ body {
   top: -20px;
   display: flex;
   justify-content: center;
-  transition: transform 0.4s;
+  transition: all 0.4s;
   transition-timing-function: linear;
   /* transition-property: ; */
   transition-property: initial;
+  animation-play-state: paused;
+  -webkit-transition-duration: 400ms;
   -webkit-transition: -webkit-transform 400ms linear;
   -moz-transition: transform 400ms linear;
   -o-transition: transform 400ms linear;
@@ -242,6 +247,19 @@ body {
 }
 
 
+.characterShadow {
+  position: absolute;
+  background-image: url("./images/character_shadow.png");
+  background-repeat: no-repeat;
+  background-size: 100%;
+  width: 50%;
+  height: 50%;
+  top: 62%;
+  left: 25%;
+  /* top: 65px;
+  left: 22px; */
+}
+
 .character_spritesheet {
   position: absolute;
   background-image: url("./images/female01-128.png");
@@ -296,7 +314,6 @@ body {
 
 .character_spritesheet[damage="true"] {
   background-position-y: calc(var(--grid-cell)*-8);
-  filter: hue-rotate(90deg);
   animation: shake;
   animation-duration: 0.3s;
   animation-iteration-count: 1;
@@ -305,6 +322,16 @@ body {
 .character_spritesheet[died="true"] {
   background-position-y: calc(var(--grid-cell)*-9);
   filter: hue-rotate(180deg);
+}
+
+@-webkit-keyframes moveSpriteSheet {
+  0% {
+    -webkit-transform: translate3d(0%, 0%, 0%)
+  }
+
+  100% {
+    -webkit-transform: translate3d(-100%, 0, 0)
+  }
 }
 
 @keyframes moveSpriteSheet {
@@ -629,10 +656,11 @@ body {
 }
 
 .pingPong {
+  maring: 0 auto;
   position: fixed;
   color: yellow;
-  right: 50px;
-  bottom: 0px;
+  right: 2rem;
+  bottom: 1rem;
   background-color: black;
 }
 
@@ -646,5 +674,28 @@ body {
   background-image: url("./images/Premade_Character_48x48_11.png");
   z-index: 10;
   image-rendering: pixelated;
+
+}
+
+.connectionStatus {
+  position: fixed;
+  border-radius: 15px;
+  width: 1rem;
+  height: 1rem;
+  bottom: 0;
+  right: 0;
+  margin: 5px;
+  background-color: black;
+  color: white;
+
+}
+
+.connectionStatus[connected="true"] {
+  background-color: greenyellow;
+
+}
+
+.connectionStatus[connected="false"] {
+  background-color: red;
 
 }

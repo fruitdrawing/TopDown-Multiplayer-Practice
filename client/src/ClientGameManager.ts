@@ -31,7 +31,9 @@ export class ClientGameManager {
                 // debugText.innerText = `${myCharacter.currentPosition.x},${myCharacter.currentPosition.y}`;
             }
         }
+
         window.requestAnimationFrame(() => {
+
             this.updateLoop();
         })
     }

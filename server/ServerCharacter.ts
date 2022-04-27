@@ -12,7 +12,11 @@ export class ServerCharacter {
     currentDirection: Direction = Direction.South;
     isMoving: boolean = false;
     isAttacking: boolean = false;
+    isPicking: boolean = false;
+
+    currentPickingItem: ServerItem | undefined = undefined;
     //status
+    currentFunc: any = undefined;
     hp: number = 3;
     died: boolean = false;
     // camera: Camera = GameManager.camera;
@@ -36,9 +40,12 @@ export class ServerCharacter {
         this.TryMove(initialPosition);
 
     }
-
+    canDoSomething(): boolean {
+        if (this.isAttacking === true || this.isMoving === true || this.isPicking === true) return false;
+        return true;
+    }
     canMoveTo(to: Vector2): boolean {
-        if (this.isAttacking === true) return false;
+        if (this.canDoSomething() == false) return false;
 
         // set direction even movement fails.
 
@@ -60,14 +67,10 @@ export class ServerCharacter {
             // this.characterSpriteHtmlElement.setAttribute("facing", "down");
             this.currentDirection = Direction.South;
         }
-        if (this.isMoving === true) return false;
         if (ServerGameManager.currentMapInfo.checkOccupiedByVector2(to) === true) return false;
         return true;
     }
 
-    async moveByServer(to: Vector2) {
-
-    }
 
     async TryMove(to: Vector2) {
 
@@ -103,8 +106,9 @@ export class ServerCharacter {
     }
 
     public async tryAttack() {
-        if (this.isAttacking == true) return;
+        if (this.canDoSomething() == false) return;
         this.isAttacking = true;
+
 
 
         let targetCell = this.getForwardCell();
@@ -115,7 +119,8 @@ export class ServerCharacter {
         // this.characterSpriteHtmlElement.setAttribute("attack", "true");
 
         await new Promise(resolve => setTimeout(resolve, 200));
-
+        console.log(targetCell);
+        console.log(targetCell?.standingCharacter);
         if (targetCell != null) {
             if (targetCell.isOccupied == true) {
                 if (targetCell.standingCharacter) {
@@ -133,9 +138,6 @@ export class ServerCharacter {
 
     }
 
-    async attackAnimation() {
-
-    }
 
     async damage() {
         if (this.died == true) return;
@@ -171,6 +173,22 @@ export class ServerCharacter {
         // this.characterSpriteHtmlElement.setAttribute('died', 'false');
 
     }
+
+
+    // ! PICK
+    async tryPickItemForward() {
+        this.isPicking = true;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        let forwardCell = this.getForwardCell();
+        if (forwardCell) {
+            if (forwardCell.hasPickableItem() == true) {
+
+            }
+        }
+        this.isPicking = false;
+    }
+
+
     getCellByDirection(direction: Direction) {
 
         let currentPos: ServerCell | undefined = ServerGameManager.currentMapInfo.getCellByVector2(this.currentPosition);
