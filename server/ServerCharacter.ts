@@ -118,8 +118,12 @@ export class ServerCharacter {
 
         if (targetCell != null) {
             if (targetCell.isOccupied == true) {
-                if (targetCell.standingCharacter?.died == false)
-                    targetCell.standingCharacter?.damage();
+                if (targetCell.standingCharacter) {
+                    if (targetCell.standingCharacter.died == false) {
+                        console.log(`damge character : ${targetCell.standingCharacter}`);
+                        targetCell.standingCharacter.damage();
+                    }
+                }
             }
         }
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -140,6 +144,8 @@ export class ServerCharacter {
 
         // this.characterSpriteHtmlElement.classList.
         this.hp -= 1;
+        ServerGameManager.serverSocketManager.serverio.emit('DamageCharacter', this.id);
+
         await new Promise(resolve => setTimeout(resolve, 1000));
         // this.characterSpriteHtmlElement.setAttribute('damage', 'false');
 
@@ -156,6 +162,8 @@ export class ServerCharacter {
 
         // this.characterHtmlElement.remove();
         this.died = true;
+        ServerGameManager.serverSocketManager.serverio.emit('deadCharacter', this.id);
+
         await new Promise(resolve => setTimeout(resolve, 5000));
 
         this.died = false;
@@ -201,7 +209,6 @@ export class ServerCharacter {
                 break;
             case Direction.South:
                 output = ServerGameManager.currentMapInfo.getCellByVector2(new Vector2(this.currentPosition.x, this.currentPosition.y + 1));
-
                 break;
             case Direction.West:
                 output = ServerGameManager.currentMapInfo.getCellByVector2(new Vector2(this.currentPosition.x - 1, this.currentPosition.y));

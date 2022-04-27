@@ -38,11 +38,13 @@ export class InputManager {
     constructor() {
 
         this.checkKeyInput();
+
+
         this.setupKeyDownEvent();
         this.onTouchStartEventSetup();
         this.onTouchEndEventSetup();
         this.setKeyUpEventSetup();
-
+        this.onTouchMoveEventSetup();
 
 
         this.nameButtonBehaviorSetup();
@@ -63,7 +65,10 @@ export class InputManager {
     }
 
     public async checkKeyInput() {
-        if (this.canSendInput == false) return;
+
+
+
+        if (this.canSendInputFunc() == false) return;
         if (ClientGameManager.playerCharacter != undefined) {
             if (ClientGameManager.playerCharacter.isMoving == true) return;
         }
@@ -76,9 +81,6 @@ export class InputManager {
                 // map.style.transform = `translate3d(${-x * CellDistance}px,${-y * CellDistance}px,0px)`;
                 if (ClientGameManager.clientSocket != null) {
                     ClientGameManager.clientSocket.clientIO.emit('player-TryMove', Direction.West);
-                    this.canSendInput = false;
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    this.canSendInput = true;
                 }
 
                 // map.style.transform = `translate3d(${-playerCharacter.currentPosition.x * CellDistance}px,${-playerCharacter.currentPosition.y * CellDistance}px,0)`;
@@ -89,9 +91,6 @@ export class InputManager {
             if (ClientGameManager.playerCharacter.isMoving == false) {
                 if (ClientGameManager.clientSocket != null) {
                     ClientGameManager.clientSocket.clientIO.emit('player-TryMove', Direction.North);
-                    this.canSendInput = false;
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    this.canSendInput = true;
                 }
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x, this.myCharacter.currentPosition.y - 1));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
@@ -102,8 +101,6 @@ export class InputManager {
             if (ClientGameManager.playerCharacter.isMoving == false) {
                 if (ClientGameManager.clientSocket != null) {
                     ClientGameManager.clientSocket.clientIO.emit('player-TryMove', Direction.East);
-                    this.canSendInput = false;
-                    await new Promise(resolve => setTimeout(resolve, 300));
                     this.canSendInput = true;
                 }
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x + 1, this.myCharacter.currentPosition.y));
@@ -115,9 +112,6 @@ export class InputManager {
             if (ClientGameManager.playerCharacter.isMoving == false) {
                 if (ClientGameManager.clientSocket != null) {
                     ClientGameManager.clientSocket.clientIO.emit('player-TryMove', Direction.South);
-                    this.canSendInput = false;
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    this.canSendInput = true;
                 }
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x + 1, this.myCharacter.currentPosition.y));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
@@ -127,15 +121,31 @@ export class InputManager {
 
         else if (this.attackPressed) {
             if (ClientGameManager.playerCharacter.isMoving == false) {
-                ClientGameManager.playerCharacter.tryAttack();
+                // ClientGameManager.playerCharacter.tryAttack();
+                ClientGameManager.clientSocket.clientIO.emit('player-TryAttack', ClientGameManager.playerCharacter.getCurrentDirection());
 
             }
         }
+        this.canSendInput = false;
+        await new Promise(resolve => setTimeout(resolve, 300));
+        this.canSendInput = true;
 
     }
 
-    setupKeyDownEvent() {
+    canSendInputFunc() {
 
+        if (this.canSendInput == false) {
+            return false;
+        }
+        if (ClientGameManager.playerCharacter) {
+            if (ClientGameManager.playerCharacter.isAttacking || ClientGameManager.playerCharacter.isMoving) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    setupKeyDownEvent() {
 
         document.addEventListener("keydown", (e) => {
             if (e.keyCode == 37) {
@@ -163,10 +173,20 @@ export class InputManager {
 
 
     }
+    onTouchMoveEventSetup() {
+        this.bottomui.ontouchmove = ((ev: TouchEvent) => {
+            console.log("ontouchMove");
+            console.log("MOVE", ev);
+        });
+
+
+    }
 
 
     onTouchStartEventSetup() {
         this.bottomui.ontouchstart = ((ev: TouchEvent) => {
+            console.log("ontouchstart");
+            console.log(ev);
             let target: HTMLButtonElement = ev.target as HTMLButtonElement;
             if (target) {
                 let clickedDpadId: string | null = target.getAttribute('id');
@@ -176,7 +196,6 @@ export class InputManager {
                         break;
                     case "dpadLeft":
                         this.leftPressed = true;
-
                         break;
                     case "dpadRight":
                         this.rightPressed = true;
@@ -192,9 +211,15 @@ export class InputManager {
             }
         });
     }
+
+
+
     onTouchEndEventSetup() {
 
         this.bottomui.ontouchend = ((ev: TouchEvent) => {
+            console.log("ontouchEND");
+            console.log('END', ev);
+
             this.upPressed = false;
             this.leftPressed = false;
             this.rightPressed = false;
@@ -239,6 +264,7 @@ export class InputManager {
             this.sideMenuBool = false;
         }
     }
+
     nameButtonBehaviorSetup() {
         this.nameSubmitButton.addEventListener('click', () => {
             if (this.nameInput.value.length < 3) {

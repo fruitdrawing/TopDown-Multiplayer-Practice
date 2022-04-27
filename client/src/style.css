@@ -3,6 +3,8 @@
   --grid-cell: calc(var(--pixel-size) * 60);
   --bg: black;
 
+
+  --character-action-animation: 40%;
   -webkit-touch-callout: none !important;
   -webkit-user-select: none !important;
 
@@ -38,7 +40,9 @@ body {
   flex-direction: column;
   overflow: hidden;
   /* prevent pinch zoom */
-  touch-action: pan-y;
+  /* touch-action: pan-y; */
+  touch-action: none;
+  overflow-y: hidden;
 }
 
 .camera {
@@ -51,6 +55,8 @@ body {
   position: relative;
   outline: 3px solid;
   outline-color: red;
+
+  /* transition-timing-function: linear; */
 }
 
 .map {
@@ -59,11 +65,16 @@ body {
   width: calc(var(--grid-cell)*20);
   height: calc(var(--grid-cell)*20);
   background-size: 100%;
-  animation-direction: alternate;
-  animation-timing-function: linear;
-
-  transition: 0.4s linear;
+  /* animation-direction: alternate; */
+  transition: transform 0.4s;
+  transition-timing-function: linear;
+  transition-property: initial;
+  -webkit-transition: -webkit-transform 400ms linear;
+  -moz-transition: transform 400ms linear;
+  -o-transition: transform 400ms linear;
+  transition-delay: 1ms;
   position: relative;
+  /* -webkit-transform: translate3d(0, 0, 0); */
 }
 
 
@@ -74,11 +85,20 @@ body {
 
 .wrapper-character {
   position: absolute;
+  /* -webkit-transform: translate3d(0, 0, 0); */
+
   top: -20px;
   display: flex;
   justify-content: center;
   transition: transform 0.4s;
   transition-timing-function: linear;
+  /* transition-property: ; */
+  transition-property: initial;
+  -webkit-transition: -webkit-transform 400ms linear;
+  -moz-transition: transform 400ms linear;
+  -o-transition: transform 400ms linear;
+  transition-delay: 1ms;
+
   width: calc(var(--grid-cell));
   height: calc(var(--grid-cell));
 
@@ -96,6 +116,104 @@ body {
   /* transition: transform 0.4s; */
   /* transition-timing-function: linear; */
 }
+
+.character[action="west"] {
+  animation: actionWest 0.7s;
+  animation-iteration-count: 1;
+}
+
+
+.character[action="north"] {
+  animation: actionNorth 0.7s;
+  animation-iteration-count: 1;
+}
+
+
+
+.character[action="east"] {
+  animation: actionEast 0.7s;
+  animation-iteration-count: 1;
+}
+
+
+
+.character[action="south"] {
+  animation: actionSouth 0.7s;
+  animation-iteration-count: 1;
+}
+
+
+
+
+@keyframes actionWest {
+  0% {
+    transform: translate3d(0%, 0%, 0%)
+  }
+
+  60% {
+    transform: translate3d(calc(var(--character-action-animation)*-1), 0, 0)
+  }
+
+  100% {
+    transform: translate3d(0%, 0, 0)
+  }
+}
+
+@keyframes actionNorth {
+  0% {
+    transform: translate3d(0%, 0%, 0%)
+  }
+
+  20% {
+    transform: translate3d(0%, 10%, 0%)
+  }
+
+  60% {
+    transform: translate3d(0, calc(var(--character-action-animation)*-1), 0)
+  }
+
+  100% {
+    transform: translate3d(0%, 0, 0)
+  }
+}
+
+@keyframes actionEast {
+  0% {
+    transform: translate3d(0%, 0%, 0%)
+  }
+
+  20% {
+    transform: translate3d(-20%, 0%, 0%)
+  }
+
+  50% {
+    transform: translate3d(0%, 0%, 0%)
+  }
+
+  60% {
+    transform: translate3d(calc(var(--character-action-animation)), 0, 0)
+  }
+
+  100% {
+    transform: translate3d(0%, 0, 0)
+  }
+}
+
+@keyframes actionSouth {
+  0% {
+    transform: translate3d(0%, 0%, 0%)
+  }
+
+  60% {
+    transform: translate3d(0, calc(var(--character-action-animation)), 0)
+  }
+
+  100% {
+    transform: translate3d(0%, 0, 0)
+  }
+}
+
+
 
 .displayNameWrapper {
   width: 250%;
@@ -126,7 +244,7 @@ body {
 
 .character_spritesheet {
   position: absolute;
-  background-image: url("./images/character2.png");
+  background-image: url("./images/female01-128.png");
   background-repeat: no-repeat;
   background-size: 100%;
   width: calc(var(--grid-cell)*2);
@@ -135,8 +253,7 @@ body {
   animation-iteration-count: infinite;
   animation-direction: normal;
   animation-fill-mode: forwards;
-
-
+  image-rendering: pixelated;
 }
 
 .character_spritesheet[facing="right"] {
@@ -157,38 +274,25 @@ body {
   background-position-y: 0px
 }
 
-
-
-
-
 .character_spritesheet[facing="down"][attack="true"] {
   background-position-y: calc(var(--grid-cell)*-4);
   animation-iteration-count: 0.5 !important;
-
 }
-
 
 .character_spritesheet[facing="left"][attack="true"] {
   background-position-y: calc(var(--grid-cell)*-5);
   animation-iteration-count: 0.5 !important;
-
-
 }
-
 
 .character_spritesheet[facing="up"][attack="true"] {
   background-position-y: calc(var(--grid-cell)*-6);
   animation-iteration-count: 0.5 !important;
-
-
 }
-
 
 .character_spritesheet[facing="right"][attack="true"] {
   background-position-y: calc(var(--grid-cell)*-7);
   animation-iteration-count: 0.5 !important;
 }
-
 
 .character_spritesheet[damage="true"] {
   background-position-y: calc(var(--grid-cell)*-8);
@@ -196,13 +300,11 @@ body {
   animation: shake;
   animation-duration: 0.3s;
   animation-iteration-count: 1;
-
 }
 
 .character_spritesheet[died="true"] {
   background-position-y: calc(var(--grid-cell)*-9);
   filter: hue-rotate(180deg);
-
 }
 
 @keyframes moveSpriteSheet {
@@ -377,7 +479,10 @@ body {
   display: flex;
   justify-content: right;
   float: right;
-  transition: 0.13s;
+
+  transition: 0.05s;
+  overflow-y: hidden;
+
 
 }
 
@@ -411,11 +516,13 @@ body {
 }
 
 .sideMenuWrapper[showSideMenu="true"] {
-  transform: translateX(0%);
+  opacity: 100%;
 }
 
 .sideMenuWrapper[showSideMenu="false"] {
-  transform: translateX(100%);
+  opacity: 0%;
+  pointer-events: none;
+
 }
 
 .primary-button {
@@ -495,11 +602,12 @@ body {
 
 
 #modalWindowWrapper[showModalWindow="true"] {
-  transform: translateX(0%);
+  opacity: 100%;
 }
 
 #modalWindowWrapper[showModalWindow="false"] {
-  transform: translateX(100%);
+  opacity: 0%;
+  pointer-events: none;
 }
 
 #modalWindowNoticeIcon {
