@@ -3,7 +3,8 @@ import { Camera } from './Camera';
 import { ClientCharacter } from './ClientCharacter';
 import { ClientSocketManager } from './ClientSocket';
 import { InputManager } from './InputManager';
-import { MapInfo } from './MapInfo';
+import { ClientMapInfo } from './ClientMapInfo';
+import { ClientItem } from './ClientItem';
 
 export class ClientGameManager {
     // public static camera: Camera = new Camera();
@@ -14,8 +15,9 @@ export class ClientGameManager {
     public static pixelSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pixel-size'));
     public static girdCellSize = 120;
     public static CellDistanceOffset: number = 80;
-    public static currentMap: MapInfo | undefined = undefined
+    public static currentMap: ClientMapInfo | undefined = undefined
     public static currentCharacterList: ClientCharacter[] = [];
+    public static currentItemList: ClientItem[] = [];
     debugText: HTMLDivElement = document.getElementById('debugText') as HTMLDivElement;
     constructor() {
         this.setupForPreventZoomAndPinchZoom();
@@ -36,6 +38,9 @@ export class ClientGameManager {
 
             this.updateLoop();
         })
+    }
+    public static getClientItemByItemId(id: string) {
+        return this.currentItemList.find(i => i.id == id);
     }
     public static spawnCharacter(id: string, displayName: string, to: Vector2, authorization: boolean) {
         console.log('Spawn New Character !!!! to:', to, authorization);

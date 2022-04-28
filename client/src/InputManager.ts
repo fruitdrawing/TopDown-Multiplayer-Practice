@@ -11,7 +11,8 @@ export class InputManager {
     upPressed: boolean = false;
     downPressed: boolean = false;
     attackPressed: boolean = false;
-
+    eatPressed: boolean = false;
+    pickPressed: boolean = false;
 
     bottomui: HTMLDivElement = document.getElementById("bottomUI") as HTMLDivElement;
 
@@ -134,6 +135,26 @@ export class InputManager {
                 this.canSendInput = true;
             }
         }
+        else if (this.pickPressed) {
+            if (ClientGameManager.playerCharacter.isMoving == false) {
+                // ClientGameManager.playerCharacter.tryAttack();
+                console.log('client try pick');
+                ClientGameManager.clientSocket.clientIO.emit('player-tryPickItemForward');
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, 300));
+                this.canSendInput = true;
+            }
+        }
+        else if (this.eatPressed) {
+            if (ClientGameManager.playerCharacter.isMoving == false) {
+                // ClientGameManager.playerCharacter.tryAttack();
+                console.log('client EAT pick');
+                ClientGameManager.clientSocket.clientIO.emit('player-tryEatItemForward');
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, 300));
+                this.canSendInput = true;
+            }
+        }
 
     }
 
@@ -170,9 +191,18 @@ export class InputManager {
                 this.attackPressed = true;
             }
             if (e.key === 'i') {
-                if (ClientGameManager.clientSocket) {
-                    console.log(ClientGameManager.clientSocket.clientIO.id);
-                }
+                let i = document.createElement('div');
+                // i.classList.add('displayNameWrapper');
+                i.classList.add('itemPickedStatus');
+                // i.classList.add('GameObject');
+                ClientGameManager.playerCharacter!.wrapperHtmlElement.append(i);
+
+            }
+            if (e.key === 'p') {
+                this.pickPressed = true;
+            }
+            if (e.key === 'e') {
+                this.eatPressed = true;
             }
         });
 
@@ -211,6 +241,13 @@ export class InputManager {
                     case "attackButton":
                         this.attackPressed = true;
                         break;
+                    case "pickButton":
+                        this.pickPressed = true;
+                        break;
+                    case "eatButton":
+                        this.eatPressed = true;
+                        break;
+
 
                 }
             }
@@ -230,6 +267,8 @@ export class InputManager {
             this.rightPressed = false;
             this.downPressed = false;
             this.attackPressed = false;
+            this.eatPressed = false;
+            this.pickPressed = false;
         });
 
     }
@@ -255,6 +294,15 @@ export class InputManager {
             }
             if (e.key === 't') {
                 console.log(ClientGameManager.currentCharacterList);
+            }
+            if (e.key === 'i') {
+
+            }
+            if (e.key === 'p') {
+                this.pickPressed = false;
+            }
+            if (e.key === 'e') {
+                this.eatPressed = false;
             }
 
         });

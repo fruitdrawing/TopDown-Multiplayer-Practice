@@ -32,14 +32,21 @@ export class ServerMapInfo {
     setOccupiedCell(to: Vector2, boolean: boolean) {
         let cell = this.getCellByVector2(to);
         if (cell) {
-            cell.isOccupied = boolean;
+            cell.setOccupied(boolean);
         }
     }
+    setCharacterStanding(to: Vector2, character: ServerCharacter | undefined) {
+        let cell = this.getCellByVector2(to);
+        if (cell) {
+            cell.setStandingCharacter(character);
+        }
+    }
+
     checkOccupiedByVector2(position: Vector2): boolean {
         let found = this.cellList.find(c => c.position.x === position.x && c.position.y === position.y)
         // console.log('found', found);
         if (found != undefined) {
-            return found.isOccupied
+            return found.checkOccupied()
         }
         else {
             return true;
@@ -48,6 +55,8 @@ export class ServerMapInfo {
     getCellByVector2(position: Vector2): ServerCell | undefined {
         return this.cellList.find(c => c.position.x === position.x && c.position.y === position.y);
     }
+
+
     tryGetItemOnCellByVector2(position: Vector2): ServerItem | undefined {
         let foundCell = this.getCellByVector2(position);
         if (foundCell != null) {

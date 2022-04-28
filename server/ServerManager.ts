@@ -28,7 +28,14 @@ export class ServerManager {
         this.app.use(express.static('client/dist'));
 
         this.app.get('/c', (req, res) => {
-            res.send(`currentPlayerCharacterList: ${JSON.stringify(ServerGameManager.currentPlayerCharacterList.map(c => c.id))}`);
+            res.send(`currentPlayerCharacterList: ${JSON.stringify(ServerGameManager.currentPlayerCharacterList.map(c => c.id))} \n
+           
+             currentItemInWorld : ${JSON.stringify(ServerGameManager.currentItemList.map(i => i.itemType))}\n
+           
+                currentCellInfo isoccupied true only: ${JSON.stringify(ServerGameManager.currentMapInfo.cellList.filter(c => c.checkOccupied()).map(c => c.position))}
+                currentCellInfo firstItem only: ${JSON.stringify(ServerGameManager.currentMapInfo.cellList.filter(c => c.hasPickableItem() != undefined).map(c => c.position))}
+                
+                `)
 
         });
         this.server.listen(this.port, () => {
@@ -103,16 +110,20 @@ export class ServerManager {
                 console.log('tried move!');
 
                 let requestedPlayer = ServerGameManager.getCharacterById(clientSocket.id);
-                // console.log(requestedPlayer);
+                if (requestedPlayer == null) return;
                 let cellByDirection = requestedPlayer?.getCellByDirection(direction);
                 // console.log(cellByDirection);
                 if (cellByDirection != null) {
-                    if (cellByDirection.isOccupied == false) {
+                    requestedPlayer.setDirectionByPosition(cellByDirection.position);
+                    if (cellByDirection.checkOccupied() == false) {
                         if (requestedPlayer) {
                             if (requestedPlayer.canMoveTo(cellByDirection.position)) {
                                 ServerGameManager.getCharacterById(clientSocket.id)?.TryMove(cellByDirection.position);
+                                console.log('who : ', clientSocket.id)
                                 console.log('try move to :', cellByDirection.position)
+
                                 this.serverio.emit('player-TryMoveAnimation', cellByDirection.position, clientSocket.id);
+                                return;
                             }
                             else {
                                 // * fail
@@ -121,6 +132,10 @@ export class ServerManager {
 
                     }
                 }
+                else {
+                    //! todo
+                }
+
                 //* Check if character availbe to move
             });
 
@@ -128,7 +143,7 @@ export class ServerManager {
 
             clientSocket.on('player-TryAttack', (direction: Direction) => {
 
-                if (ServerGameManager.getCharacterById(clientSocket.id)?.isAttacking == false) {
+                if (ServerGameManager.getCharacterById(clientSocket.id)?.canDoSomething() == true) {
                     this.serverio.emit('player-TryAttack', clientSocket.id, direction);
                     console.log('player-TryAttack emited from client');
                     // * Check if the character can attack
@@ -143,7 +158,33 @@ export class ServerManager {
             });
 
 
+            clientSocket.on('player-tryPickItemForward', () => {
 
+                let playerCharacter = ServerGameManager.getCharacterById(clientSocket.id);
+                if (playerCharacter) {
+                    if (playerCharacter.currentPickingItem != undefined) {
+                        console.log('player tried DROP something!')
+
+                        playerCharacter.dropItemForward();
+
+                    }
+                    else {
+                        console.log('player tried PICK! something!')
+
+                        playerCharacter.tryPickItemForward();
+
+                    }
+                }
+            });
+
+
+            clientSocket.on('player-tryEatItemForward', () => {
+
+                let playerCharacter = ServerGameManager.getCharacterById(clientSocket.id);
+                if (playerCharacter) {
+
+                }
+            });
 
             clientSocket.on('player-nameChanged', (displayName) => {
                 let character = ServerGameManager.getCharacterById(clientSocket.id);
@@ -172,11 +213,14 @@ export class ServerManager {
                         // * empty the cell someone was standing
 
                         wasStandingCell.setStandingCharacter(undefined);
-                        wasStandingCell.isOccupied = false;
+                        // wasStandingCell.isOccupied = false;
                     }
 
                     // ! null can be occupied by ghost
                     // this.removeArray(ServerGameManager.currentPlayerCharacterList, foundCharacter);
+                    // ^ elemenate ghost null
+                    ServerGameManager.currentPlayerCharacterList.filter(c => c == null).map(c => ServerGameManager.currentMapInfo.setOccupiedCell(c.currentPosition, false));
+
                     ServerGameManager.currentPlayerCharacterList = ServerGameManager.currentPlayerCharacterList.filter(c => c.id != clientSocket.id && c.id != null);
                     this.serverio.emit('disconnect-fromserver', clientSocket.id);
                 }

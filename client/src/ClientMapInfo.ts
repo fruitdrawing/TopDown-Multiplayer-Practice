@@ -1,9 +1,10 @@
 import { Cell } from "./Cell";
 import { ClientItem } from "./ClientItem";
 import { Vector2 } from "../../server/Vector2";
+import { Direction } from "./Enums";
 
 
-export class MapInfo {
+export class ClientMapInfo {
 
     minX: number;
     minY: number;
@@ -52,5 +53,8 @@ export class MapInfo {
             return foundCell.hasFirstLayerItem;
         }
         return undefined;
+    }
+    getCellByDirectionFrom(position: Vector2, direction: Direction) {
+
     }
 }

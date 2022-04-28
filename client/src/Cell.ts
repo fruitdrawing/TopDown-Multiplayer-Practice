@@ -9,7 +9,7 @@ export class Cell {
     htmlElement: HTMLDivElement;
     isOccupied: boolean = false;
     hasFirstLayerItem: ClientItem | undefined = undefined;
-    hasSecondaryLayerItem: ClientItem | undefined = undefined;
+    // hasSecondaryLayerItem: ClientItem | undefined = undefined;
     standingCharacter: ClientCharacter | undefined = undefined;
     constructor(vector2: Vector2) {
         this.position = vector2;

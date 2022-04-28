@@ -1,47 +1,28 @@
 import { ItemOccupyType, ItemType } from "../client/src/Enums";
+import { ServerGameManager } from "./ServerGameManager";
 import { Vector2 } from "./Vector2";
-
+import { v1 } from 'uuid';
 export class ServerItem {
 
+    id: string = v1();
+    itemType: ItemType = ItemType.apple;
     position: Vector2;
-    imgElement: HTMLDivElement;
-    itemType: ItemType = ItemType.chess;
-    itemOccupyType: ItemOccupyType = ItemOccupyType.none;
 
     constructor(position: Vector2, itemType: ItemType) {
         this.position = position;
-        this.imgElement = document.createElement('div') as HTMLDivElement;
-        this.imgElement.classList.add('GameObject');
-
-        let parentDiv = document.getElementById('map');
-        if (parentDiv) {
-            parentDiv.append(this.imgElement);
+        this.itemType = itemType;
+        this.setPosition(position);
+        ServerGameManager.currentItemList.push(this);
+        console.log(ServerGameManager.currentItemList);
+    }
+    setPosition(to: Vector2) {
+        // Todo 
+        let c = ServerGameManager.currentMapInfo.getCellByVector2(to);
+        if (c != null) {
+            let b = c.tryPutItem(this);
+            console.log(b);
         }
-
-        // let found = GameManager.currentMap.getCellByVector2(position);
-        // if (found) {
-        // found.hasItem = this;
-        // }
-
-        // //* Set visual position
-        // this.imgElement.style.transform = `translate3d(${position.x * GameManager.CellDistanceOffset}px,${position.y * GameManager.CellDistanceOffset}px,0)`;
-
-    }
-    // setImage(src: string) {
-    //     // this.imgElement.style.backgroundImage = `url("${src}")`;
-    // }
-
-    tryRemoveItemFromWorld(): boolean {
-        // let foundCell = GameManager.currentMap.getCellByVector2(this.position);
-        // if (foundCell != null) {
-        //     foundCell.hasItem = undefined;
-        //     this.removeImageElementFromWorld();
-        //     return true;
-        // }
-        return false;
     }
 
-    private removeImageElementFromWorld() {
-        this.imgElement.remove();
-    }
+
 }

@@ -5,29 +5,24 @@ export enum Direction {
     North,
     East,
     South
-
 }
 
-
-
 export enum ItemType {
-    chess,
-    beer,
-    wine,
-    soju,
-    hamburger,
-    pizza,
-    banana,
-    apple,
-    table,
-    invisibleWall
-
+    chess = "chess",
+    beer = "beer",
+    wine = "wine",
+    soju = "soju",
+    hamburger = "hamburger",
+    pizza = "pizza",
+    banana = "banana",
+    apple = "apple",
+    table = "table",
+    invisibleWall = "invisibleWall"
 }
 
 export enum ItemOccupyType {
     wall,
     firstLayer,
-    none
 }
 
 // export enum ItemLayer{
@@ -56,20 +51,20 @@ export type ItemGeneralType =
 //     ss : boolean
 
 // }
-const db: ItemGeneralType[] = [
+export const itemDB: ItemGeneralType[] = [
     {
         itemType: ItemType.chess,
-        pickable: false,
-        itemOccupyType: ItemOccupyType.none,
+        pickable: true,
+        itemOccupyType: ItemOccupyType.firstLayer,
         eatable: false,
         src: "./images/chess512.png"
     },
     {
         itemType: ItemType.table,
-        pickable: false,
+        pickable: true,
         itemOccupyType: ItemOccupyType.firstLayer,
         eatable: false,
-        src: "asda"
+        src: "./images/table.png"
     },
     {
         itemType: ItemType.invisibleWall,
@@ -77,7 +72,14 @@ const db: ItemGeneralType[] = [
         itemOccupyType: ItemOccupyType.wall,
         eatable: false,
         src: "./images/female01-128.png"
+    },
+    {
+        itemType: ItemType.beer,
+        pickable: true,
+        itemOccupyType: ItemOccupyType.firstLayer,
+        eatable: true,
+        src: "./images/beer.png"
     }
 ];
 
-console.log(db.find(i => i.itemType == ItemType.table)?.src);
+// console.log(db.find(i => i.itemType == ItemType.table)?.src);
