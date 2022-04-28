@@ -63,8 +63,6 @@ export class ClientCharacter {
         // this.wrapperHtmlElement.append(this.displayNameHTML);
 
 
-
-
         this.displayName = displayName;
         this.SetClientName(displayName)
 
@@ -108,9 +106,107 @@ export class ClientCharacter {
                 break;
         }
     }
-    async moveByServer(to: Vector2) {
+
+
+
+
+
+
+    async tryPickAnimation(to: Vector2) {
+        this.characterSpriteHtmlElement.classList.remove('character_spritesheet');
+        void this.characterSpriteHtmlElement.offsetWidth;
+        this.characterSpriteHtmlElement.classList.add('character_spritesheet');
+
+        switch (this.getCurrentDirection()) {
+            case Direction.West:
+                this.characterHtmlElement.setAttribute("action", "west");
+                break;
+            case Direction.North:
+                this.characterHtmlElement.setAttribute("action", "north");
+
+                break;
+            case Direction.East:
+                this.characterHtmlElement.setAttribute("action", "east");
+
+                break;
+            case Direction.South:
+                this.characterHtmlElement.setAttribute("action", "south");
+
+                break;
+        }
+
+        this.characterSpriteHtmlElement.setAttribute("pick", "true");
+
+        await new Promise(resolve => setTimeout(resolve, 400));
+        this.characterSpriteHtmlElement.setAttribute("pick", "false");
+        let cell = ClientGameManager.currentMap?.getCellByVector2(to);
+        if (cell) {
+            cell.hasFirstLayerItem?.pickedBy(this);
+            cell.hasFirstLayerItem = undefined;
+
+        }
+
 
     }
+
+
+    async tryDropItemAnimation(to: Vector2, itemid: string) {
+        //
+        // append html to world
+        console.log(4);
+        // create new html
+
+        let itemHTML: HTMLDivElement | null = this.wrapperHtmlElement.querySelector('.itemPickedStatus');
+        let mapHTML = document.getElementById('map');
+        if (itemHTML != null) {
+            mapHTML?.append(itemHTML);
+            itemHTML.style.transform = `translate3d(${this.currentPosition.x *
+                ClientGameManager.CellDistanceOffset}px,
+                 ${this.currentPosition.y * ClientGameManager.CellDistanceOffset}px,0px`;
+            itemHTML.classList.remove('itemPickedStatus');
+            itemHTML.style.transform = `translate3d(${to.x *
+                ClientGameManager.CellDistanceOffset}px,${to.y *
+                ClientGameManager.CellDistanceOffset}px,0px`;
+            console.log(5);
+        }
+
+        let cell = ClientGameManager.currentMap?.getCellByVector2(to);
+        if (cell) {
+            cell.hasFirstLayerItem = ClientGameManager.getClientItemByItemId(itemid);
+        }
+
+        switch (this.getCurrentDirection()) {
+            case Direction.West:
+                this.characterHtmlElement.setAttribute("action", "west");
+                break;
+            case Direction.North:
+                this.characterHtmlElement.setAttribute("action", "north");
+
+                break;
+            case Direction.East:
+                this.characterHtmlElement.setAttribute("action", "east");
+
+                break;
+            case Direction.South:
+                this.characterHtmlElement.setAttribute("action", "south");
+
+                break;
+        }
+
+
+        this.characterSpriteHtmlElement.setAttribute("pick", "true");
+        await new Promise(resolve => setTimeout(resolve, 400));
+        this.characterSpriteHtmlElement.setAttribute("pick", "false");
+        // set starting point first
+        // set end point
+
+    }
+
+
+
+
+
+
 
     async TryMoveAnimation(to: Vector2) {
 
@@ -327,5 +423,18 @@ export class ClientCharacter {
 
     getCurrentDirection() {
         return this.currentDirection;
+    }
+    getOppositeDirection() {
+        switch (this.currentDirection) {
+            case Direction.West:
+                return Direction.East;
+            case Direction.North:
+                return Direction.South;
+            case Direction.East:
+                return Direction.West;
+            case Direction.West:
+                return Direction.East;
+        }
+        return Direction.South;
     }
 }
