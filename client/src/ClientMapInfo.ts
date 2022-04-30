@@ -11,12 +11,14 @@ export class ClientMapInfo {
     maxX: number;
     maxY: number;
     cellList: Cell[] = [];
+    mapHTML: HTMLDivElement;
     constructor(minX: number, minY: number, maxX: number, maxY: number, mapData: object) {
         this.minX = minX;
         this.minY = minY;
         this.maxX = maxX;
         this.maxY = maxY;
         this.setCellListByMinMax(mapData);
+        this.mapHTML = document.getElementById('map') as HTMLDivElement;
     }
     setCellListByMinMax(object: object): void {
         for (let x = this.minX; x < this.maxX; x++) {

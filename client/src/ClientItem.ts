@@ -1,4 +1,4 @@
-import { Direction, ItemOccupyType, ItemType } from "./Enums";
+import { Direction, itemDB, ItemOccupyType, ItemType } from "./Enums";
 // import { GameManager } from "./GameManager";
 import { Vector2 } from "../../server/Vector2";
 import { ClientGameManager } from "./ClientGameManager";
@@ -11,11 +11,11 @@ export class ClientItem {
     imgElement: HTMLDivElement;
     itemType: ItemType = ItemType.chess;
     id: string;
-    occupiedLayer: 0 | 1
-    constructor(id: string, position: Vector2, itemType: ItemType, layer: 0 | 1) {
+    // occupiedLayer: 0 | 1
+    constructor(id: string, position: Vector2, itemType: ItemType) {
         this.position = position;
         this.id = id;
-        this.occupiedLayer = layer;
+        // this.occupiedLayer = layer;
         this.imgElement = document.createElement('div') as HTMLDivElement;
         this.imgElement.classList.add('GameObject');
 
@@ -30,30 +30,30 @@ export class ClientItem {
         }
 
         // //* Set visual position
+        let i = itemDB.find(i => i.itemType == itemType);
+        if (i) {
+            this.setImage(i.src);
+        }
         this.imgElement.style.transform = `translate3d(${position.x * ClientGameManager.CellDistanceOffset}px,${position.y * ClientGameManager.CellDistanceOffset}px,0)`;
 
     }
     setImage(src: string) {
+        // this.imgElement.setAttribute('background-image', `url("${src}")`);
+        this.imgElement.classList.add(src);
         // this.imgElement.style.backgroundImage = `url("${src}")`;
     }
 
-    tryRemoveItemFromWorld(): boolean {
-        // let foundCell = GameManager.currentMap.getCellByVector2(this.position);
-        // if (foundCell != null) {
-        //     foundCell.hasItem = undefined;
-        //     this.removeImageElementFromWorld();
-        //     return true;
-        // }
-        return false;
-    }
-
-    beEaten() {
-
+    tryRemoveItemFromWorld() {
+        let c = ClientGameManager.currentMap?.getCellByVector2(this.position);
+        if (c) {
+            c.hasFirstLayerItem = undefined;
+        }
+        this.imgElement.remove();
     }
 
     async pickedBy(character: ClientCharacter) {
         //get cell by direction
-        // todo create new html 로 바꾸기
+        // todo create new html 로 
         let to = character.currentPosition;
         this.imgElement.style.transform =
             `translate3d(${to.x * ClientGameManager.CellDistanceOffset}px,${to.y * ClientGameManager.CellDistanceOffset}px,0px`;

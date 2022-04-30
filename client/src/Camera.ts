@@ -4,8 +4,7 @@ import { ClientGameManager } from "./ClientGameManager";
 export class Camera {
     characterToFocus: ClientCharacter | undefined = undefined;
 
-    offset: number = 80;
-    cameraOffsetX = window.innerWidth / 2 - (this.offset / 2);
+    cameraOffsetX = window.innerWidth / 2 - (ClientGameManager.CellDistanceOffset / 2);
     cameraOffsetY = window.innerHeight / 3;
     map: HTMLDivElement = document.getElementById('map') as HTMLDivElement;
     constructor(character: ClientCharacter) {
@@ -13,6 +12,7 @@ export class Camera {
         // window.onresize = this.resizeCameraOffset;
         console.log('123');
         this.characterToFocus = character;
+
     }
     // setPlayerCharacter(character: ClientCharacter) {
     //     this.characterToFocus = character;
@@ -22,7 +22,10 @@ export class Camera {
         // console.log('Set Camer Position!!!');
         // if (this.characterToFocus == null) return;
         // console.log(this.map);
-        this.map.style.transform = `translate3d(${x * this.offset + this.cameraOffsetX}px,${y * this.offset + this.cameraOffsetY}px,0)`;
+        this.map.style.transform =
+            `translate3d(${x * ClientGameManager.CellDistanceOffset
+            + this.cameraOffsetX}px,${y * ClientGameManager.CellDistanceOffset
+            + this.cameraOffsetY}px,0)`;
         // this.map.style.transform = `translate3d(-${x * this.offset + this.cameraOffsetX}px,-${y * this.offset + this.cameraOffsetY}px,0)`;
     }
 

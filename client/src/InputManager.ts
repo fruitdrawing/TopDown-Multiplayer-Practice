@@ -14,6 +14,8 @@ export class InputManager {
     eatPressed: boolean = false;
     pickPressed: boolean = false;
 
+
+    delay: number = 400;
     bottomui: HTMLDivElement = document.getElementById("bottomUI") as HTMLDivElement;
 
     menuButtonUI: HTMLButtonElement = document.getElementById("rightTopMenuButton") as HTMLButtonElement;
@@ -27,6 +29,12 @@ export class InputManager {
     modalWindowOkButton: HTMLDivElement = document.getElementById("modalWindowOkButton") as HTMLDivElement;
 
     modalWindowNoticeIcon: HTMLDivElement = document.getElementById("modalWindowNoticeIcon") as HTMLDivElement;
+
+
+    warningMessageWrapper: HTMLDivElement = document.getElementById("WarningMessageWrapper") as HTMLDivElement;
+    // warnningMessage : HTMLDivElement = document.getElementById("WarningMessage") as HTMLDivElement;
+
+
 
     modalWindowBool: boolean = false;;
     sideMenuBool: boolean = false;
@@ -82,7 +90,7 @@ export class InputManager {
                     ClientGameManager.clientSocket.clientIO.emit('player-TryMove', Direction.West);
                 }
                 this.canSendInput = false;
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, this.delay));
                 this.canSendInput = true;
                 // map.style.transform = `translate3d(${-playerCharacter.currentPosition.x * CellDistance}px,${-playerCharacter.currentPosition.y * CellDistance}px,0)`;
             }
@@ -96,7 +104,7 @@ export class InputManager {
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x, this.myCharacter.currentPosition.y - 1));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
                 this.canSendInput = false;
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, this.delay));
                 this.canSendInput = true;
             }
         }
@@ -109,7 +117,7 @@ export class InputManager {
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x + 1, this.myCharacter.currentPosition.y));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
                 this.canSendInput = false;
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, this.delay));
                 this.canSendInput = true;
             }
         }
@@ -121,7 +129,7 @@ export class InputManager {
                 // this.myCharacter.TryMoveAnimation(new Vector2(this.myCharacter.currentPosition.x + 1, this.myCharacter.currentPosition.y));
                 // mainCamera.setCameraPosition(-playerCharacter.currentPosition.x, -playerCharacter.currentPosition.y);
                 this.canSendInput = false;
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, this.delay));
                 this.canSendInput = true;
             }
         }
@@ -131,7 +139,7 @@ export class InputManager {
                 // ClientGameManager.playerCharacter.tryAttack();
                 ClientGameManager.clientSocket.clientIO.emit('player-TryAttack', ClientGameManager.playerCharacter.getCurrentDirection());
                 this.canSendInput = false;
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, this.delay));
                 this.canSendInput = true;
             }
         }
@@ -141,7 +149,7 @@ export class InputManager {
                 console.log('client try pick');
                 ClientGameManager.clientSocket.clientIO.emit('player-tryPickItemForward');
                 this.canSendInput = false;
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, this.delay));
                 this.canSendInput = true;
             }
         }
@@ -149,9 +157,9 @@ export class InputManager {
             if (ClientGameManager.playerCharacter.isMoving == false) {
                 // ClientGameManager.playerCharacter.tryAttack();
                 console.log('client EAT pick');
-                ClientGameManager.clientSocket.clientIO.emit('player-tryEatItemForward');
+                ClientGameManager.clientSocket.clientIO.emit('player-eatItemForward');
                 this.canSendInput = false;
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, this.delay));
                 this.canSendInput = true;
             }
         }
@@ -191,12 +199,12 @@ export class InputManager {
                 this.attackPressed = true;
             }
             if (e.key === 'i') {
-                let i = document.createElement('div');
+                // let i = document.createElement('div');
                 // i.classList.add('displayNameWrapper');
-                i.classList.add('itemPickedStatus');
+                // i.classList.add('itemPickedStatus');
                 // i.classList.add('GameObject');
-                ClientGameManager.playerCharacter!.wrapperHtmlElement.append(i);
-
+                // ClientGameManager.playerCharacter!.wrapperHtmlElement.append(i);
+                this.showErrorMessage("asdad asd asd asd a");
             }
             if (e.key === 'p') {
                 this.pickPressed = true;
@@ -208,6 +216,44 @@ export class InputManager {
 
 
     }
+
+
+
+    setKeyUpEventSetup() {
+
+        document.addEventListener("keyup", (e) => {
+            if (e.keyCode == 37) {
+                this.leftPressed = false;
+            }
+            if (e.keyCode == 39) {
+                this.rightPressed = false;
+            }
+            if (e.keyCode == 38) {
+                this.upPressed = false;
+            }
+            if (e.keyCode == 40) {
+                this.downPressed = false;
+            }
+            if (e.key === 'a') {
+                this.attackPressed = false;
+            }
+            if (e.key === 't') {
+                console.log(ClientGameManager.currentCharacterList);
+            }
+            if (e.key === 'i') {
+
+            }
+            if (e.key === 'p') {
+                this.pickPressed = false;
+            }
+            if (e.key === 'e') {
+                this.eatPressed = false;
+            }
+
+        });
+
+    }
+
     onTouchMoveEventSetup() {
         this.bottomui.ontouchmove = ((ev: TouchEvent) => {
             console.log("ontouchMove");
@@ -274,40 +320,6 @@ export class InputManager {
     }
 
 
-    setKeyUpEventSetup() {
-
-        document.addEventListener("keyup", (e) => {
-            if (e.keyCode == 37) {
-                this.leftPressed = false;
-            }
-            if (e.keyCode == 39) {
-                this.rightPressed = false;
-            }
-            if (e.keyCode == 38) {
-                this.upPressed = false;
-            }
-            if (e.keyCode == 40) {
-                this.downPressed = false;
-            }
-            if (e.key === 'a') {
-                this.attackPressed = false;
-            }
-            if (e.key === 't') {
-                console.log(ClientGameManager.currentCharacterList);
-            }
-            if (e.key === 'i') {
-
-            }
-            if (e.key === 'p') {
-                this.pickPressed = false;
-            }
-            if (e.key === 'e') {
-                this.eatPressed = false;
-            }
-
-        });
-
-    }
     showSideMenu() {
         if (this.sideMenuBool == false) {
             this.sideMenuWrapper.setAttribute('showSideMenu', 'true');
@@ -352,4 +364,15 @@ export class InputManager {
             this.modalWindowBool = true;
         }
     }
+
+    showErrorMessage(message: string) {
+        console.log(message);
+        let newMessage = document.createElement('p');
+        newMessage.classList.add('WarningMessage');
+        newMessage.innerText = message;
+        this.warningMessageWrapper.append(newMessage);
+        setTimeout(() => newMessage.remove(), 3000);
+    }
+
+
 }

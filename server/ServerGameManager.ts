@@ -14,14 +14,14 @@ export class ServerGameManager {
 
     // public static currentUserSocketIdList: string[] = [];
 
-    public static currentMapInfo: ServerMapInfo = new ServerMapInfo(0, 0, 10, 10, {});
+    public static currentMapInfo: ServerMapInfo = new ServerMapInfo(0, 0, 32, 32, {});
 
     // debugText: HTMLDivElement = document.getElementById('debugText') as HTMLDivElement;
     constructor() {
         // this.setupForPreventZoomAndPinchZoom();
         // this.updateLoop();
-        new ServerItem(new Vector2(4, 5), ItemType.chess);
-
+        new ServerItem(new Vector2(9, 24), ItemType.chess);
+        new ServerItem(new Vector2(16, 28), ItemType.beer);
     }
     static getCharacterById(id: string) {
         if (ServerGameManager.currentPlayerCharacterList.length > 0)

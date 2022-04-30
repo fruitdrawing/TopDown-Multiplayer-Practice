@@ -4,7 +4,7 @@ import http from 'http';
 
 
 import { Vector2 } from './Vector2'
-import { Direction } from '../client/src/Enums'
+import { Direction, characterType } from '../client/src/Enums'
 import { ServerGameManager } from './ServerGameManager';
 import { ServerCharacter } from './ServerCharacter';
 
@@ -24,6 +24,7 @@ export class ServerManager {
     port = process.env.PORT || 3001;
     // public currentUserList: string[] = [];
 
+    light: boolean = false;
     constructor() {
         this.app.use(express.static('client/dist'));
 
@@ -37,6 +38,10 @@ export class ServerManager {
                 
                 `)
 
+        });
+
+        this.app.get('/e', (req, res) => {
+            this.toggleLight();
         });
         this.server.listen(this.port, () => {
             console.log(`listening to ${this.port}`);
@@ -85,12 +90,12 @@ export class ServerManager {
 
 
 
-            clientSocket.on('player-TrySpawn', (socketid: string) => {
+            clientSocket.on('player-TrySpawn', (socketid: string, receivedDisplayName: string, receivedCharacterType: characterType) => {
                 console.log('player-spawned : ', socketid);
-                let randomCell = ServerGameManager.currentMapInfo.cellList[Math.floor(Math.random() * ServerGameManager.currentMapInfo.cellList.length)];
-                // let randomCellTwo;
-                console.log(randomCell);
-                let createdChara = new ServerCharacter(socketid, socketid, randomCell.position, false);
+                let tempList = ServerGameManager.currentMapInfo.cellList.filter(m => m.checkOccupied() == false);
+                let randomNotOccupiedCell = tempList[Math.floor(Math.random() * tempList.length)];
+                console.log(randomNotOccupiedCell);
+                let createdChara = new ServerCharacter(socketid, receivedDisplayName, randomNotOccupiedCell.position, false, receivedCharacterType);
                 // while (randomCell.isOccupied != true) {
                 //     randomCellTwo = ServerGameManager.currentMap.cellList[Math.floor(Math.random() * ServerGameManager.currentMap.cellList.length)];
                 //     if (randomCellTwo != null) {
@@ -101,8 +106,10 @@ export class ServerManager {
                 // if (spawnPosition != null) {
                 ServerGameManager.currentPlayerCharacterList.push(createdChara);
                 // console.log("current users:", ServerGameManager.currentPlayerCharacterList);
-                let displayName = createdChara.displayName;
-                this.serverio.emit('player-TrySpawn', randomCell.position, socketid, displayName);
+                // let displayName = createdChara.displayName;
+                // let serverCharacterType = createdChara.characterType;
+
+                this.serverio.emit('player-TrySpawn', randomNotOccupiedCell.position, socketid, receivedDisplayName, receivedCharacterType);
             });
 
             clientSocket.on('player-TryMove', (direction: Direction) => {
@@ -178,13 +185,14 @@ export class ServerManager {
             });
 
 
-            clientSocket.on('player-tryEatItemForward', () => {
+            clientSocket.on('player-eatItemForward', () => {
 
                 let playerCharacter = ServerGameManager.getCharacterById(clientSocket.id);
                 if (playerCharacter) {
-
+                    playerCharacter.eatForward();
                 }
             });
+
 
             clientSocket.on('player-nameChanged', (displayName) => {
                 let character = ServerGameManager.getCharacterById(clientSocket.id);
@@ -198,7 +206,6 @@ export class ServerManager {
             clientSocket.on('ping', () => {
                 clientSocket.emit('pong');
             });
-
 
 
             clientSocket.on('disconnect', (socket) => {
@@ -230,6 +237,20 @@ export class ServerManager {
         });
 
 
+    }
+
+    toggleLight() {
+        if (this.light == true) {
+            this.light = false;
+            this.serverio.emit('light-toggle', this.light);
+        }
+        else {
+            this.light = true;
+            this.serverio.emit('light-toggle', this.light);
+
+
+        }
+        console.log("toggle light");
     }
 
 

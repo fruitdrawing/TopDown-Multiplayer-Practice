@@ -1,4 +1,4 @@
-import { Direction } from "../client/src/Enums";
+import { characterType, Direction } from "../client/src/Enums";
 import { ServerCell } from "./ServerCell";
 import { ServerGameManager } from "./ServerGameManager";
 import { ServerItem } from "./ServerItem";
@@ -16,7 +16,10 @@ export class ServerCharacter {
     isPicking: boolean = false;
     isDamaging: boolean = false;
     isDropping: boolean = false;
+    isEating: boolean = false;
 
+
+    tempLightSwitch: boolean = false;
     currentPickingItem: ServerItem | undefined = undefined;
     //status
     currentFunc: any = undefined;
@@ -24,8 +27,10 @@ export class ServerCharacter {
     died: boolean = false;
     // camera: Camera = GameManager.camera;
     bag: ServerItem[] = [];
-    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean) {
 
+    characterType: characterType;
+    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean, characterType: characterType) {
+        this.characterType = characterType;
         // if(createdMap.checkOccupiedByVector2(initialPosition)) return;
         this.id = id;
         this.displayName = displayName;
@@ -47,7 +52,7 @@ export class ServerCharacter {
     canDoSomething(): boolean {
         if (this.isAttacking === true || this.isMoving === true
             || this.isPicking === true || this.isDamaging === true ||
-            this.died === true || this.isDropping === true) return false;
+            this.died === true || this.isDropping === true || this.isEating === true) return false;
         return true;
     }
 
@@ -133,6 +138,9 @@ export class ServerCharacter {
         if (targetCell != null) {
             if (targetCell.checkOccupied() == true) {
                 if (targetCell.standingCharacter) {
+
+
+
                     if (targetCell.standingCharacter.died == false) {
                         console.log(`damge character : ${targetCell.standingCharacter}`);
                         targetCell.standingCharacter.damage();
@@ -150,6 +158,12 @@ export class ServerCharacter {
 
     async damage() {
         if (this.died == true) return;
+        // * emit light on off
+
+        if (this.tempLightSwitch == true) {
+            ServerGameManager.serverSocketManager.toggleLight();
+
+        }
         // ^ damage effect
         this.isDamaging = true;
         // this.characterSpriteHtmlElement.setAttribute('damage', 'true');
@@ -167,6 +181,7 @@ export class ServerCharacter {
             // stun for 3 seconds
             this.die();
         }
+
 
     }
 
@@ -190,7 +205,6 @@ export class ServerCharacter {
     async tryPickItemForward() {
         if (this.canDoSomething() == false) return;
         if (this.currentPickingItem != undefined) return;
-        console.log(1123123);
         let output: ServerItem | undefined;
         let forwardCell = this.getForwardCell();
         if (forwardCell) {
@@ -200,7 +214,6 @@ export class ServerCharacter {
                 this.currentPickingItem = i;
                 forwardCell.hasFirstLayerItem = undefined;
                 output = i;
-                console.log(4444);
 
             }
         }
@@ -221,24 +234,49 @@ export class ServerCharacter {
     }
     // * DROP
     async dropItemForward() {
-        console.log('droppping...');
         if (this.canDoSomething() == false) return;
         if (this.currentPickingItem == undefined) return;
         this.isDropping = true;
         let forwardCell = this.getForwardCell();
         if (forwardCell) {
             if (forwardCell.canDropItemHere(this.currentPickingItem)) {
-                console.log('????...')
                 forwardCell.tryPutItem(this.currentPickingItem);
 
                 ServerGameManager.serverSocketManager.serverio.emit('player-dropItemForward', forwardCell.position, this.id, this.currentPickingItem.id);
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                this.isDropping = false;
                 this.currentPickingItem = undefined;
             }
 
         }
+        this.isDropping = false;
 
+
+    }
+
+
+    async eatForward() {
+        if (this.canDoSomething() == false) return;
+        this.isEating = true;
+        let forwardCell = this.getForwardCell();
+        if (forwardCell) {
+            if (forwardCell.canEatItem()) {
+                let goingToEat = forwardCell.hasFirstLayerItem;
+                if (goingToEat) {
+
+                    ServerGameManager.currentItemList = ServerGameManager.currentItemList.filter(i => i.id != goingToEat?.id);
+                    forwardCell.hasFirstLayerItem = undefined;
+                    console.log('\x1b[33m%s\x1b[0m', 'eat...!!!');
+                    ServerGameManager.serverSocketManager.serverio.emit('player-eatItemForward', forwardCell.position, this.id, goingToEat.id);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    ServerGameManager.serverSocketManager.serverio.emit('remove-item', goingToEat.id);
+                    this.isEating = false;
+
+                    return;
+                }
+            }
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        this.isEating = false;
     }
 
     getCellByDirection(direction: Direction) {

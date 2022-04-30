@@ -1,6 +1,6 @@
 import { Camera } from "./Camera";
 import { Cell } from "./Cell";
-import { Direction } from "./Enums";
+import { characterType, Direction } from "./Enums";
 import { ClientGameManager } from "./ClientGameManager";
 import { ClientItem } from "./ClientItem";
 import { Vector2 } from "../../server/Vector2";
@@ -8,6 +8,7 @@ import { Vector2 } from "../../server/Vector2";
 
 export class ClientCharacter {
     id: string;
+    characterType: characterType;
     displayName: string;
     currentPosition: Vector2 = new Vector2(0, 0);
     private currentDirection: Direction = Direction.South;
@@ -22,9 +23,10 @@ export class ClientCharacter {
     displayNameHTML: HTMLParagraphElement;
 
     camera: Camera | undefined = undefined;
-    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean) {
+    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean, characterType: characterType) {
         this.id = id;
 
+        this.characterType = characterType;
 
 
         if (authorization == true) {
@@ -74,6 +76,9 @@ export class ClientCharacter {
         this.shadowHtmlElement.classList.add("characterShadow");
         this.characterHtmlElement.prepend(this.shadowHtmlElement);
 
+
+        this.setupSpriteSheetByCharacterType(characterType);
+        
     }
 
     ChangeNameEvent(name: string) {
@@ -112,11 +117,11 @@ export class ClientCharacter {
 
 
 
-    async tryPickAnimation(to: Vector2) {
+    async tryPickAnimation(to: Vector2, itemid: string) {
         this.characterSpriteHtmlElement.classList.remove('character_spritesheet');
         void this.characterSpriteHtmlElement.offsetWidth;
         this.characterSpriteHtmlElement.classList.add('character_spritesheet');
-
+        console.log(888888);
         switch (this.getCurrentDirection()) {
             case Direction.West:
                 this.characterHtmlElement.setAttribute("action", "west");
@@ -141,19 +146,46 @@ export class ClientCharacter {
         this.characterSpriteHtmlElement.setAttribute("pick", "false");
         let cell = ClientGameManager.currentMap?.getCellByVector2(to);
         if (cell) {
-            cell.hasFirstLayerItem?.pickedBy(this);
-            cell.hasFirstLayerItem = undefined;
-
+            let i = ClientGameManager.getClientItemByItemId(itemid)
+            console.log(i);
+            i?.pickedBy(this);
         }
+    }
+
+    async tryEatItemAnimation(to: Vector2, itemid: string) {
+
+        let clientItem = ClientGameManager.getClientItemByItemId(itemid);
+        clientItem?.tryRemoveItemFromWorld();
+
+        switch (this.getCurrentDirection()) {
+            case Direction.West:
+                this.characterHtmlElement.setAttribute("action", "west");
+                break;
+            case Direction.North:
+                this.characterHtmlElement.setAttribute("action", "north");
+                break;
+            case Direction.East:
+                this.characterHtmlElement.setAttribute("action", "east");
+                break;
+            case Direction.South:
+                this.characterHtmlElement.setAttribute("action", "south");
+                break;
+        }
+        this.characterSpriteHtmlElement.setAttribute("pick", "true");
+        await new Promise(resolve => setTimeout(resolve, 400));
+        this.characterSpriteHtmlElement.setAttribute("pick", "false");
+        console.log("client eat animation start");
+
+        this.characterSpriteHtmlElement.setAttribute("eat", "true");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        this.characterSpriteHtmlElement.setAttribute("eat", "false");
+        console.log("client eat finish");
 
 
     }
-
-
     async tryDropItemAnimation(to: Vector2, itemid: string) {
         //
         // append html to world
-        console.log(4);
         // create new html
 
         let itemHTML: HTMLDivElement | null = this.wrapperHtmlElement.querySelector('.itemPickedStatus');
@@ -172,7 +204,12 @@ export class ClientCharacter {
 
         let cell = ClientGameManager.currentMap?.getCellByVector2(to);
         if (cell) {
-            cell.hasFirstLayerItem = ClientGameManager.getClientItemByItemId(itemid);
+            console.log(777777);
+            console.log(777777);
+            console.log(777777);
+            console.log(777777);
+            console.log(ClientGameManager.getClientItemByItemId(itemid));
+
         }
 
         switch (this.getCurrentDirection()) {
@@ -436,5 +473,26 @@ export class ClientCharacter {
                 return Direction.East;
         }
         return Direction.South;
+    }
+    setupSpriteSheetByCharacterType(haracterType: characterType) {
+        switch (haracterType) {
+            case characterType.female01:
+                this.characterSpriteHtmlElement.classList.add('character_female01')
+                break;
+
+            case characterType.female02:
+                this.characterSpriteHtmlElement.classList.add('character_female02')
+
+                break;
+            case characterType.male01:
+                this.characterSpriteHtmlElement.classList.add('character_male01')
+
+                break;
+            case characterType.male02:
+                this.characterSpriteHtmlElement.classList.add('character_male02')
+
+                break;
+
+        }
     }
 }

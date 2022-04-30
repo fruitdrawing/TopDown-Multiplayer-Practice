@@ -16,8 +16,9 @@ export class ServerCell {
     // hasSecondaryLayerItem: ServerItem | undefined = undefined;
 
     standingCharacter: ServerCharacter | undefined = undefined;
-    constructor(vector2: Vector2) {
+    constructor(vector2: Vector2,occupied : boolean) {
         this.position = vector2;
+        this.setOccupied(occupied);
         // this.htmlElement = document.createElement("div") as HTMLDivElement;
         // this.htmlElement.classList.add('cell');
 
@@ -68,7 +69,13 @@ export class ServerCell {
         return undefined;
 
     }
+    canEatItem(): boolean {
+        if (this.hasFirstLayerItem == undefined) return false;
+        if (ServerGameManager.getItemInfoByItemTypeFromDB(this.hasFirstLayerItem.itemType)?.eatable) return true;
 
+        return false;
+
+    }
     checkOccupied(): boolean {
         // todo
         if (this.isOccupied == true) return true;

@@ -12,8 +12,9 @@ export class ServerItem {
         this.position = position;
         this.itemType = itemType;
         this.setPosition(position);
+
         ServerGameManager.currentItemList.push(this);
-        console.log(ServerGameManager.currentItemList);
+
     }
     setPosition(to: Vector2) {
         // Todo 

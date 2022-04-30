@@ -62,8 +62,8 @@ body {
 .map {
   background-image: url("./images/backgroundBigCity.png");
   background-repeat: no-repeat;
-  width: calc(var(--grid-cell)*20);
-  height: calc(var(--grid-cell)*20);
+  width: calc(var(--grid-cell)*32);
+  height: calc(var(--grid-cell)*32);
   background-size: 100%;
   /* animation-direction: alternate; */
   transition: all 0.4s;
@@ -77,7 +77,12 @@ body {
   animation-play-state: paused;
   transition-delay: 1ms;
   position: relative;
+  image-rendering: pixelated;
   /* -webkit-transform: translate3d(0, 0, 0); */
+}
+
+.map[light="true"] {
+  background-image: url("./images/backgroundBigCity_off.png");
 }
 
 
@@ -262,7 +267,6 @@ body {
 
 .character_spritesheet {
   position: absolute;
-  background-image: url("./images/female01-128.png");
   background-repeat: no-repeat;
   background-size: 100%;
   width: calc(var(--grid-cell)*2);
@@ -272,6 +276,22 @@ body {
   animation-direction: normal;
   animation-fill-mode: forwards;
   image-rendering: pixelated;
+}
+
+.character_male01 {
+  background-image: url("./images/male01-128.png");
+}
+
+.character_male02 {
+  background-image: url("./images/male02-128.png");
+}
+
+.character_female01 {
+  background-image: url("./images/female01-128.png");
+}
+
+.character_female02 {
+  background-image: url("./images/female02-128.png");
 }
 
 .character_spritesheet[facing="right"] {
@@ -316,6 +336,34 @@ body {
 
 
 
+.character_spritesheet[eat="true"] {
+  background-position-y: calc(var(--grid-cell)*-10);
+}
+
+/* 
+.character_spritesheet[facing="left"][eat="true"] {
+  background-position-y: calc(var(--grid-cell)*-10);
+  animation-iteration-count: 1
+}
+
+.character_spritesheet[facing="up"][eat="true"] {
+  background-position-y: calc(var(--grid-cell)*-10);
+  animation-iteration-count: 1
+}
+
+.character_spritesheet[facing="right"][eat="true"] {
+  background-position-y: calc(var(--grid-cell)*-10);
+  animation-iteration-count: 1
+} */
+
+
+
+
+
+
+
+
+
 .character_spritesheet[facing="down"][pick="true"] {
   background-position-y: calc(var(--grid-cell)*-4);
   animation-iteration-count: 0.5 !important;
@@ -335,6 +383,9 @@ body {
   background-position-y: calc(var(--grid-cell)*-7);
   animation-iteration-count: 0.5 !important;
 }
+
+
+
 
 
 .character_spritesheet[damage="true"] {
@@ -419,12 +470,12 @@ body {
 
 
 .cell {
-  background-color: lightcyan;
+  /* background-color: lightcyan; */
   width: calc(var(--grid-cell));
   height: calc(var(--grid-cell));
-  outline: 3px solid;
-  outline-color: black;
-  z-index: -1;
+  /* outline: 1px solid;
+  outline-color: black; */
+  /* z-index: -1; */
   opacity: 0%;
   position: absolute;
 }
@@ -485,7 +536,7 @@ body {
 }
 
 .GameObject {
-  background-image: url("./images/chess512.png");
+  /* background-image: url("./images/chess512.png"); */
   position: absolute;
   background-size: 100%;
   z-index: -1;
@@ -493,6 +544,15 @@ body {
   height: calc(var(--grid-cell));
   transition: all 0.4s;
   transition-timing-function: linear;
+}
+
+.WorldItem-Chess {
+  background-image: url("./images/chess512.png");
+}
+
+.WorldItem-Beer {
+  background-image: url("./images/beer.png");
+
 }
 
 .inventoryButton {
@@ -505,12 +565,11 @@ body {
   width: 4rem;
   height: 2.3rem;
   color: grey;
-  z-index: 3;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: xx-large;
-  z-index: 10;
+  z-index: 8;
 
 }
 
@@ -584,7 +643,7 @@ body {
   color: black;
   border-radius: 15px;
   outline-width: 0px;
-  width: 14vh;
+  width: 18vh;
   height: 6vh;
   border: 0px;
   font-weight: bolder;
@@ -629,7 +688,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 10;
+  z-index: 110;
 
   display: flex;
   justify-content: center;
@@ -758,4 +817,154 @@ body {
   color: white;
 
   /* background-color: red; */
+}
+
+#WarningMessageWrapper {
+  width: 100%;
+  height: 30%;
+  position: fixed;
+  z-index: 10;
+  bottom: 70%;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: center;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.WarningMessage {
+  display: inline-block;
+  position: relative;
+
+  color: red;
+
+  pointer-events: none;
+  font-weight: bolder;
+  text-align: center;
+  font-size: x-large;
+  width: 100%;
+  height: 3vh;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+
+
+}
+
+#WarningMessage[display="true"] {
+  opacity: 100%;
+}
+
+#WarningMessage[display="false"] {
+  opacity: 0%;
+
+}
+
+
+
+
+
+#LoginWindowWrapper {
+  font-family: "Gill Sans", sans-serif;
+  font-size: large;
+  width: 100%;
+  height: 100%;
+  z-index: 9;
+  /* background-color: darkslateblue; */
+  background: url("./images/chessbg64.png") repeat 0 0;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  color: white;
+  text-align: center;
+
+  animation-name: repeat;
+  animation-duration: 3s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes repeat {
+
+  0% {
+    background-position: 0px 0px;
+  }
+
+  100% {
+    background-position: 64px 64px;
+  }
+}
+
+.character-select-button {
+  width: 20vh;
+  height: 20vh;
+  border-radius: 40px;
+  background-color: rgba(255, 255, 255, 0);
+  border-color: rgba(255, 255, 255, 1);
+  border-style: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.character-select-button:hover {
+  background-color: yellow;
+}
+
+.character-select-button[selected="true"] {
+  background-color: cyan;
+  animation: pikapika 0.1s infinite;
+}
+
+@keyframes pikapika {
+  0% {
+    background-color: palevioletred;
+  }
+
+  100% {
+    background-color: greenyellow;
+  }
+}
+
+#LoginDisplayNameInput {
+  height: 10vh;
+  font-size: large;
+  padding: 5px;
+  box-shadow: 3px 5px 10px 10px rgba(0, 0, 0, 0.6);
+
+}
+
+
+
+#LoginWindowWrapper[turnon="false"] {
+  opacity: 0;
+  display: none;
+}
+
+.force-position-relative {
+  top: 10px;
+  position: relative !important
+}
+
+.character-select-wrapper {
+  display: grid;
+  grid-gap: 1rem;
+  grid-template-columns: repeat(2, 50%);
+  grid-template-rows: repeat(2, 1fr);
+
+
+}
+
+hr {
+  border: none;
+  border-top: 3px double #333;
+  color: #333;
+  overflow: visible;
+  text-align: center;
+  height: 5px;
 }

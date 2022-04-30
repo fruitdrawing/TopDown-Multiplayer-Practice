@@ -25,7 +25,6 @@ import { IfvisibleManager } from './IfvisibleManager';
 const gm = new ClientGameManager();
 
 
-
 // const ifvisible = new IfvisibleManager();
 
 

@@ -2,7 +2,7 @@ import { io, Socket } from "socket.io-client";
 import { ClientCharacter } from "./ClientCharacter";
 import { ClientGameManager } from "./ClientGameManager";
 import { Vector2 } from "../../server/Vector2";
-import { Direction } from "./Enums";
+import { characterType, Direction } from "./Enums";
 import { ClientMapInfo } from "./ClientMapInfo";
 import { ServerMapInfo } from "../../server/ServerMapInfo";
 import { ServerCharacter } from "../../server/ServerCharacter";
@@ -30,8 +30,8 @@ export class ClientSocketManager {
         console.log("import.meta.env.VITE_SOCKETURL", import.meta.env.VITE_SOCKETURL);
 
 
-        localStorage.setItem("asdd", "123123");
-        console.log(localStorage.getItem("asdd"));
+        // localStorage.setItem("asdd", "123123");
+        // console.log(localStorage.getItem("asdd"));
 
         // wasm
 
@@ -74,8 +74,8 @@ export class ClientSocketManager {
                 // let s = mapInfo.cellList[i].hasSecondaryLayerItem;
 
                 if (f) {
-                    ClientGameManager.currentMap.cellList[i].hasFirstLayerItem = new ClientItem(f.id, mapInfo.cellList[i].position, f.itemType, 0)
-                    ClientGameManager.currentItemList.push(ClientGameManager.currentMap.cellList[i].hasFirstLayerItem!);
+                    let item = new ClientItem(f.id, mapInfo.cellList[i].position, f.itemType)
+                    ClientGameManager.currentItemList.push(item);
                 }
                 // if (s) {
                 // ClientGameManager.currentMap.cellList[i].hasSecondaryLayerItem = new ClientItem(s.id, mapInfo.cellList[i].position, s.itemType, 1)
@@ -88,7 +88,9 @@ export class ClientSocketManager {
             // * Setup Other Client's Characters
             for (let i = 0; i < serverCharacterList.length; i++) {
                 if (serverCharacterList[i].id != this.clientIO.id) {
-                    let spanwedOtherCharacter = new ClientCharacter(serverCharacterList[i].id, serverCharacterList[i].displayName, serverCharacterList[i].currentPosition, false);
+                    let spanwedOtherCharacter =
+                        new ClientCharacter(serverCharacterList[i].id,
+                            serverCharacterList[i].displayName, serverCharacterList[i].currentPosition, false, serverCharacterList[i].characterType);
                     spanwedOtherCharacter.SetDirection(serverCharacterList[i].currentDirection);
                     ClientGameManager.currentCharacterList.push(spanwedOtherCharacter);
                     console.log("!!!! span", spanwedOtherCharacter);
@@ -100,10 +102,10 @@ export class ClientSocketManager {
 
 
 
-        (setTimeout(() => {
-            // * Try Character Spawn after 1 sec
-            this.clientIO.emit('player-TrySpawn', this.clientIO.id)
-        }, 300));
+        // (setTimeout(() => {
+        //     // * Try Character Spawn after 1 sec
+        //     this.clientIO.emit('player-TrySpawn', this.clientIO.id)
+        // }, 300));
 
 
 
@@ -145,15 +147,20 @@ export class ClientSocketManager {
         });
 
 
-        this.clientIO.on('player-TrySpawn', (to: Vector2, socketid: string, displayName: string) => {
+        this.clientIO.on('light-toggle',(bool : boolean) => 
+        {
+            ClientGameManager.changeMap(bool);
+        });
+        
+        this.clientIO.on('player-TrySpawn', (to: Vector2, socketid: string, displayName: string, characterType: characterType) => {
             console.log('spawn position from server', to)
             if (socketid == null) return;
             console.log(`this.clientIO.id :${this.clientIO.id},     socketid:${socketid}`)
             if (this.clientIO.id == socketid) {
-                ClientGameManager.spawnCharacter(socketid, displayName, to, true);
+                ClientGameManager.spawnCharacter(socketid, displayName, to, true, characterType);
             }
             else {
-                ClientGameManager.spawnCharacter(socketid, displayName, to, false);
+                ClientGameManager.spawnCharacter(socketid, displayName, to, false, characterType);
             }
         });
 
@@ -174,8 +181,8 @@ export class ClientSocketManager {
             console.log(444);
             if (who) {
                 if (clientItem) {
-                    who.tryPickAnimation(to);
-                    console.log(555);
+
+                    who.tryPickAnimation(to, itemid);
 
                 }
             }
@@ -193,6 +200,25 @@ export class ClientSocketManager {
                     who.tryDropItemAnimation(to, itemid);
                 }
             }
+        });
+        this.clientIO.on('player-eatItemForward', (to: Vector2, whoId: string, itemid: string) => {
+            console.log('is going to EAT item ', to);
+            console.log(whoId);
+            console.log(itemid);
+            let who = ClientGameManager.getCharacterBySocketId(whoId);
+            let clientItem = ClientGameManager.getClientItemByItemId(itemid);
+            if (who) {
+                who.tryEatItemAnimation(to, itemid);
+            }
+        });
+
+        this.clientIO.on('remove-item', (itemid: string) => {
+            let item = ClientGameManager.getClientItemByItemId(itemid);
+            if (item) {
+                item.tryRemoveItemFromWorld();
+                ClientGameManager.currentItemList = ClientGameManager.currentItemList.filter(i => i.id != itemid);
+            }
+
         });
 
 
