@@ -49,14 +49,14 @@ export class ServerGameManager {
     }
 
     static spawnEnemy(to: Vector2) {
-        let createdNpc = new RandomMoveNPC(v4().toString(), "Enemy", to, false, characterType.skeleton, true);
+        let createdNpc = new RandomMoveNPC(v4().toString(), "나쁜넘", to, false, characterType.skeleton, true);
         ServerGameManager.currentPlayerCharacterList.push(createdNpc);
     }
 
     static spawnEnemyRandomPlace() {
         let tempEmptyCellList = ServerGameManager.currentMapInfo.cellList.filter(m => m.checkOccupied() == false);
         let randomNotOccupiedCell = tempEmptyCellList[Math.floor(Math.random() * tempEmptyCellList.length)];
-        let createdNpc = new RandomMoveNPC(v4.toString(), "Enemy", randomNotOccupiedCell.position, false, characterType.skeleton, true);
+        let createdNpc = new RandomMoveNPC(v4.toString(), "나쁜넘", randomNotOccupiedCell.position, false, characterType.skeleton, true);
         ServerGameManager.currentPlayerCharacterList.push(createdNpc);
 
     }

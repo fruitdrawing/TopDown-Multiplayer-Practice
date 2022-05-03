@@ -47,6 +47,12 @@ export class ServerManager {
             this.toggleShadow();
         });
 
+        this.app.get('/skeleton',(req,res) => {
+            console.log("new skeleton on random place");
+            ServerGameManager.spawnEnemyRandomPlace();y
+        });
+
+      
 
         this.app.get('/t', (req, res) => {
             this.toggleShadow();

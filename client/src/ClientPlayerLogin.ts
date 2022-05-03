@@ -68,7 +68,7 @@ export class ClientPlayerLogin {
         });
 
 
-        if (this.debugButton) {
+        if (this.debugButton == true) {
             this.debug();
         }
     }

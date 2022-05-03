@@ -977,6 +977,17 @@ body {
 
   /* background-color: red; */
 }
+#emotionButton{
+  position: absolute;
+  width: 20%;
+  height: 50%;
+  top: -90px;
+  right: 50px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  color: white;
+}
 
 #WarningMessageWrapper {
   width: 100%;
