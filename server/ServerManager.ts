@@ -49,7 +49,7 @@ export class ServerManager {
 
         this.app.get('/skeleton',(req,res) => {
             console.log("new skeleton on random place");
-            ServerGameManager.spawnEnemyRandomPlace();y
+            ServerGameManager.spawnEnemyRandomPlace();
         });
 
       
