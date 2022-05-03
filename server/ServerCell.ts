@@ -1,5 +1,4 @@
-import e from "express";
-import { ItemGeneralType, ItemOccupyType, ItemType } from "../client/src/Enums";
+import { ItemGeneralType, ItemOccupyType, ItemType } from "./shared/Enums";
 import { ServerCharacter } from "./ServerCharacter";
 import { ServerGameManager } from "./ServerGameManager";
 import { ServerItem } from "./ServerItem";
@@ -10,13 +9,13 @@ export class ServerCell {
     // htmlElement: HTMLDivElement;
     isOccupied: boolean = false;
 
-
+    isLightStatus: boolean = false;
     wall: boolean = false;
     hasFirstLayerItem: ServerItem | undefined = undefined;
     // hasSecondaryLayerItem: ServerItem | undefined = undefined;
 
     standingCharacter: ServerCharacter | undefined = undefined;
-    constructor(vector2: Vector2,occupied : boolean) {
+    constructor(vector2: Vector2, occupied: boolean) {
         this.position = vector2;
         this.setOccupied(occupied);
         // this.htmlElement = document.createElement("div") as HTMLDivElement;
@@ -45,8 +44,11 @@ export class ServerCell {
 
     setOccupied(bool: boolean) {
         this.isOccupied = bool;
+        // this.setStandingCharacter(undefined);
     }
 
+  
+   
 
     hasPickableItem(): ServerItem | undefined {
         // todo
@@ -138,6 +140,7 @@ export class ServerCell {
 
 
     tryPutItem(serverItem: ServerItem) {
+
         let i = ServerGameManager.getItemInfoByItemTypeFromDB(serverItem.itemType);
         if (i != null) {
             switch (i.itemOccupyType) {
@@ -159,6 +162,7 @@ export class ServerCell {
                     break;
 
             }
+
         }
         return;
 

@@ -1,11 +1,10 @@
 import { Vector2 } from '../../server/Vector2';
-import { Camera } from './Camera';
 import { ClientCharacter } from './ClientCharacter';
 import { ClientSocketManager } from './ClientSocket';
 import { InputManager } from './InputManager';
 import { ClientMapInfo } from './ClientMapInfo';
 import { ClientItem } from './ClientItem';
-import { characterType } from './Enums';
+import { characterType, ItemType } from '../../server/shared/Enums';
 import { ClientPlayerLogin } from './ClientPlayerLogin';
 
 export class ClientGameManager {
@@ -33,39 +32,38 @@ export class ClientGameManager {
     static updateLoop() {
 
         ClientGameManager.inputManager.checkKeyInput();
-        if (ClientGameManager.playerCharacter != null) {
-            // if (this.debugText != null) {
-            // debugText.innerText = `${myCharacter.currentPosition.x},${myCharacter.currentPosition.y}`;
-            // }
-        }
+        // if (ClientGameManager.playerCharacter != null) {
+        // if (this.debugText != null) {
+        // debugText.innerText = `${myCharacter.currentPosition.x},${myCharacter.currentPosition.y}`;
+        // }
+        // }
 
         window.requestAnimationFrame(() => {
 
             this.updateLoop();
         })
     }
-    public static getClientItemByItemId(id: string) {
-        return this.currentItemList.find(i => i.id == id);
-    }
-    public static spawnCharacter(id: string, displayName: string, to: Vector2, authorization: boolean, characterType: characterType) {
+    // public static getClientItemByItemId(id: string) {
+    //     return this.currentItemList.find(i => i.id == id);
+    // }
+    public static spawnCharacter(id: string, displayName: string, to: Vector2, authorization: boolean, characterType: characterType,isthisNpc : boolean) {
         console.log('Spawn New Character !!!! to:', to, authorization);
 
 
         if (this.clientSocket.clientIO.id == id) {
             // * this client's character is spawning
             console.log("player character spawned");
-            ClientGameManager.playerCharacter = new ClientCharacter(id, displayName, to, authorization, characterType);
+            ClientGameManager.playerCharacter = new ClientCharacter(id, displayName, to, authorization, characterType,isthisNpc);
             ClientGameManager.currentCharacterList.push(ClientGameManager.playerCharacter);
 
             // * Enable Input
-            this.updateLoop();
             // this.inputManager.setupPlayerCharacter(ClientGameManager.playerCharacter);
             // this.clientSocket.setupPlayerCharacter(ClientGameManager.playerCharacter);
         }
         else {
             // * other client's character
             console.log("!!! new other character spawned");
-            ClientGameManager.currentCharacterList.push(new ClientCharacter(id, displayName, to, authorization, characterType))
+            ClientGameManager.currentCharacterList.push(new ClientCharacter(id, displayName, to, authorization, characterType,isthisNpc))
         }
         // this.camera.setPlayerCharacter(ClientGameManager.playerCharacter);
     }
@@ -126,15 +124,44 @@ export class ClientGameManager {
 
         })();
     }
-    public static changeMap(bool: boolean) {
-        console.log('change MAP()');
-        if (bool == true) {
-            this.currentMap?.mapHTML.setAttribute('light', 'true');
 
+
+    public static changeDarkShadowStatus(bool: boolean) {
+        console.log('change MAP()');
+        if (this.currentMap == null) return;
+        if (bool == true) {
+            console.log('light on')
+            this.currentMap.darkShadow.setAttribute("light", "true");
         }
         else {
-            this.currentMap?.mapHTML.setAttribute('light', 'false');
+            console.log('light off')
 
+            this.currentMap.darkShadow.setAttribute("light", "false");
         }
+    }
+
+    public static spawnItemOnWorld(id:string,to:Vector2,itemType:ItemType,currentLightStatus:boolean)
+    {
+        this.currentItemList.push(new ClientItem(id,to,itemType,currentLightStatus));
+    }
+    public static deleteItemFromWorld(id:string)
+    {
+        let found = ClientGameManager.currentItemList.find(i=>i.id == id);
+        if(found)
+        {
+            found.tryRemoveItemFromWorld();
+            ClientGameManager.currentItemList = ClientGameManager.currentItemList.filter(i => i.id != found?.id);
+        }
+
+    }
+
+    public static setItemToCharacter(character:ClientCharacter,itemType:ItemType)
+    {
+        character.setPickingItemState(itemType);
+    }
+
+    public static offItemFromCharacter(character:ClientCharacter)
+    {
+        character.offPickingState();
     }
 }

@@ -17,9 +17,15 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitReturns": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "typeRoots": [],
+    "types": [
+      "node"
+    ]
   },
   "include": [
-    "src"
+    "src",
+    "../server/shared/Enums.ts"
   ]
 }

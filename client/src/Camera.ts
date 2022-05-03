@@ -26,6 +26,8 @@ export class Camera {
             `translate3d(${x * ClientGameManager.CellDistanceOffset
             + this.cameraOffsetX}px,${y * ClientGameManager.CellDistanceOffset
             + this.cameraOffsetY}px,0)`;
+
+        console.log("CAAAMMEEEERAAA");
         // this.map.style.transform = `translate3d(-${x * this.offset + this.cameraOffsetX}px,-${y * this.offset + this.cameraOffsetY}px,0)`;
     }
 

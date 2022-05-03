@@ -1,7 +1,8 @@
 import { ClientGameManager } from "./ClientGameManager";
-import { characterType } from "./Enums";
+import { characterType } from "../../server/shared/Enums";
 
 export class ClientPlayerLogin {
+    private debugButton: boolean = import.meta.env.VITE_AUTOLOGIN;
 
     LoginWindowWrapper: HTMLDivElement;
     displayNameInput: HTMLInputElement;
@@ -14,11 +15,14 @@ export class ClientPlayerLogin {
     female01button: HTMLButtonElement = document.getElementById('female01') as HTMLButtonElement
     female02button: HTMLButtonElement = document.getElementById('female02') as HTMLButtonElement
 
+
     private characterSelected: boolean = false;
-    private displayName : string= "";
+    private displayName: string = "";
     private currentSelectedCharacter: characterType = characterType.male01;
 
     constructor() {
+        console.log(this.debugButton);
+        console.log('DEBUG_AUTOLOGIN', import.meta.env.VITE_AUTOLOGIN);
         this.LoginWindowWrapper = document.getElementById('LoginWindowWrapper') as HTMLDivElement;
 
         this.displayNameInput = document.getElementById('LoginDisplayNameInput') as HTMLInputElement;
@@ -64,7 +68,17 @@ export class ClientPlayerLogin {
         });
 
 
+        if (this.debugButton) {
+            this.debug();
+        }
+    }
 
+    async debug() {
+        this.displayNameInput.value = "hOHOHO";
+        let jj = this.female02button!;
+
+        jj.click();
+        await new Promise(resolve => setTimeout(() => this.LetsGoButton.click(), 1000));
     }
 
     // onCharacterButtonClicked(e: MouseEvent) {
@@ -96,7 +110,6 @@ export class ClientPlayerLogin {
                 break;
             case "select-female02":
                 this.currentSelectedCharacter = characterType.female02;
-
                 break;
 
 
@@ -116,7 +129,7 @@ export class ClientPlayerLogin {
         }
         this.displayName = this.displayNameInput.value;
         this.LoginWindowWrapper.setAttribute("turnon", "false");
-        ClientGameManager.clientSocket.clientIO.emit('player-TrySpawn', ClientGameManager.clientSocket.clientIO.id,this.displayName,this.currentSelectedCharacter);
+        ClientGameManager.clientSocket.clientIO.emit('player-TrySpawn', ClientGameManager.clientSocket.clientIO.id, this.displayName, this.currentSelectedCharacter);
 
     }
     GetPreviousLoggedInDataFromLocalStorage() {

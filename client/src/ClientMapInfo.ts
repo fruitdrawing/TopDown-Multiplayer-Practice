@@ -1,11 +1,10 @@
 import { Cell } from "./Cell";
-import { ClientItem } from "./ClientItem";
 import { Vector2 } from "../../server/Vector2";
-import { Direction } from "./Enums";
+import { Direction } from "../../server/shared/Enums";
 
 
 export class ClientMapInfo {
-
+    darkShadow: HTMLDivElement;
     minX: number;
     minY: number;
     maxX: number;
@@ -18,6 +17,7 @@ export class ClientMapInfo {
         this.maxX = maxX;
         this.maxY = maxY;
         this.setCellListByMinMax(mapData);
+        this.darkShadow = document.getElementById('darkShadow') as HTMLDivElement;
         this.mapHTML = document.getElementById('map') as HTMLDivElement;
     }
     setCellListByMinMax(object: object): void {
@@ -49,13 +49,16 @@ export class ClientMapInfo {
     getCellByVector2(position: Vector2): Cell | undefined {
         return this.cellList.find(c => c.position.x === position.x && c.position.y === position.y);
     }
-    tryGetItemOnCellByVector2(position: Vector2): ClientItem | undefined {
-        let foundCell = this.getCellByVector2(position);
-        if (foundCell != null) {
-            return foundCell.hasFirstLayerItem;
-        }
-        return undefined;
-    }
+
+    // tryGetItemOnCellByVector2(position: Vector2): ClientItem | undefined {
+    //     let foundCell = this.getCellByVector2(position);
+    //     if (foundCell != null) {
+    //         return foundCell.item;
+    //     }
+    //     return undefined;
+    // }
+
+
     getCellByDirectionFrom(position: Vector2, direction: Direction) {
 
     }

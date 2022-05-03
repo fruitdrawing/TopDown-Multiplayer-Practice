@@ -60,6 +60,7 @@ body {
 }
 
 .map {
+  /* z-index: -100; */
   background-image: url("./images/backgroundBigCity.png");
   background-repeat: no-repeat;
   width: calc(var(--grid-cell)*32);
@@ -81,10 +82,70 @@ body {
   /* -webkit-transform: translate3d(0, 0, 0); */
 }
 
+/* 
 .map[light="true"] {
   background-image: url("./images/backgroundBigCity_off.png");
+} */
+
+#lightTest {
+  width: 400px;
+  height: 400px;
+  mix-blend-mode: hard-light;
+  position: absolute;
+  /* transform: translate3d(2000px, 900px, 0); */
+  /* left: 50%; */
+  /* left: 50%; */
+  margin: 0 auto;
+  left: 20%;
+  top: 20%;
+  background-color: rgb(255, 67, 174);
+  z-index: 0;
+  border-radius: 100%;
+  opacity: 50%;
+  filter: blur(12px);
+  transform-origin: center;
+  animation: lightSize;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }
 
+@keyframes lightSize {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+
+  }
+}
+
+#darkShadow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(24, 11, 43, 0.50);
+  mix-blend-mode: overlay;
+
+  pointer-events: none;
+
+  z-index: 3;
+
+}
+
+#darkShadow[light="true"] {
+  opacity: 0%;
+}
+
+#darkShadow[light="false"] {
+  opacity: 100%;
+}
 
 
 
@@ -240,7 +301,7 @@ body {
   color: yellow;
   font-family: "Gill Sans", sans-serif;
   -webkit-text-stroke: 0.5px greenyellow;
-  z-index: 2;
+  /* z-index: 2; */
   font-size: medium;
   text-align: center;
   width: 30vh;
@@ -249,6 +310,12 @@ body {
   padding: 10px;
   overflow-x: visible;
   transform: translate3d(0, -50%, 0);
+}
+
+.displayName[npc="true"] {
+  color: red;
+  -webkit-text-stroke: 0.5px red;
+
 }
 
 
@@ -292,6 +359,11 @@ body {
 
 .character_female02 {
   background-image: url("./images/female02-128.png");
+}
+
+.character_skeleton {
+  background-image: url("./images/skeleton-128.png");
+
 }
 
 .character_spritesheet[facing="right"] {
@@ -339,6 +411,12 @@ body {
 .character_spritesheet[eat="true"] {
   background-position-y: calc(var(--grid-cell)*-10);
 }
+
+
+.character_spritesheet[emotion="true"] {
+  background-position-y: calc(var(--grid-cell)*-11);
+}
+
 
 /* 
 .character_spritesheet[facing="left"][eat="true"] {
@@ -475,7 +553,6 @@ body {
   height: calc(var(--grid-cell));
   /* outline: 1px solid;
   outline-color: black; */
-  /* z-index: -1; */
   opacity: 0%;
   position: absolute;
 }
@@ -552,6 +629,88 @@ body {
 
 .WorldItem-Beer {
   background-image: url("./images/beer.png");
+
+}
+
+.WorldItem-Food-Bread {
+  background-image: url("./images/food-bread.png");
+}
+
+.WorldItem-Food-Brown {
+  background-image: url("./images/food-brown.png");
+}
+
+.WorldItem-Food-Donut {
+  background-image: url("./images/food-donut.png");
+}
+
+.WorldItem-Food-Gogigogi {
+  background-image: url("./images/food-gogigogi.png");
+}
+
+.WorldItem-Food-Hamburger {
+  background-image: url("./images/food-hamburger.png");
+}
+
+.WorldItem-Food-Hotdog {
+  background-image: url("./images/food-hotdog.png");
+}
+
+.WorldItem-Food-Icecream {
+  background-image: url("./images/food-icecream.png");
+}
+
+.WorldItem-Food-Mexican {
+  background-image: url("./images/food-mexican.png");
+}
+
+.WorldItem-Food-Pizza {
+  background-image: url("./images/food-pizza.png");
+}
+
+.WorldItem-Food-Potato {
+  background-image: url("./images/food-potato.png");
+}
+
+.WorldItem-Food-Rice {
+  background-image: url("./images/food-rice.png");
+}
+
+.WorldItem-Food-Sandwich {
+  background-image: url("./images/food-sandwich.png");
+}
+
+.WorldItem-Food-Waffle {
+  background-image: url("./images/food-waffle.png");
+}
+
+.WorldItem-Food-Lightlamp {
+  z-index: 1;
+  background-image: url("./images/item-lightlamp.png");
+}
+.WorldItem-Food-Lightswitch {
+  background-image: url("./images/item-lightswitch.png");
+}
+
+.WorldItem-Fan {
+  background-image: url("./images/fan.png");
+  animation: fan steps(2) 0.5s infinite;
+}
+
+
+
+@keyframes fan {
+  0% {
+    transform: translate3d(0%, 0%, 0%)
+  }
+
+  20% {
+    transform: translate3d(-32px, 0, 0)
+  }
+
+  40% {
+    transform: translate3d(-64px, 0, 0)
+  }
 
 }
 
@@ -743,7 +902,7 @@ body {
 }
 
 .pingPong {
-  maring: 0 auto;
+  margin: 0 auto;
   position: fixed;
   color: yellow;
   right: 2rem;
@@ -810,7 +969,7 @@ body {
   width: 20%;
   height: 50%;
   top: -90px;
-  left: 90px;
+  left: 50px;
   justify-content: center;
   align-items: center;
   display: flex;
@@ -844,8 +1003,7 @@ body {
   font-size: x-large;
   width: 100%;
   height: 3vh;
-  text-shadow:
-    -1px -1px 0 #000,
+  text-shadow: -1px -1px 0 #000,
     1px -1px 0 #000,
     -1px 1px 0 #000,
     1px 1px 0 #000;
@@ -967,4 +1125,56 @@ hr {
   overflow: visible;
   text-align: center;
   height: 5px;
+}
+
+#pickButton {
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.light-yellow{
+
+  width: 400px;
+  height: 400px;
+  mix-blend-mode:color-burn;
+  position: absolute;
+  background-color: rgb(255, 180, 40);
+  z-index: 0;
+  border-radius: 100%;
+  opacity: 50%;
+  filter: blur(14px);
+  transform-origin: center;
+  left : -160%;
+  top : -160%;
+  animation: lightSize;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+
+}
+
+
+.light-pink{
+
+  width: 400px;
+  height: 400px;
+  mix-blend-mode:color-burn;
+  position: absolute;
+  background-color: rgb(255, 40, 187);
+  z-index: 0;
+  border-radius: 100%;
+  opacity: 50%;
+  filter: blur(14px);
+  transform-origin: center;
+  left : -160%;
+  top : -160%;
+  animation: lightSize;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+
 }

@@ -2,12 +2,10 @@ import { io, Socket } from "socket.io-client";
 import { ClientCharacter } from "./ClientCharacter";
 import { ClientGameManager } from "./ClientGameManager";
 import { Vector2 } from "../../server/Vector2";
-import { characterType, Direction } from "./Enums";
+import { characterType, Direction, ItemType } from "../../server/shared/Enums";
 import { ClientMapInfo } from "./ClientMapInfo";
 import { ServerMapInfo } from "../../server/ServerMapInfo";
 import { ServerCharacter } from "../../server/ServerCharacter";
-import { ClientItem } from "./ClientItem";
-// import.meta.env.VITE_SOCKETURL
 
 export class ClientSocketManager {
     //"http://localhost:3001"
@@ -25,9 +23,9 @@ export class ClientSocketManager {
 
     // myCharacter: ClientCharacter | undefined = undefined;
     constructor() {
-        console.log('ClientSocketManager', this.clientIO);
+        console.log('cccc', import.meta.env.VITE_SOCKETURL);
+        console.log('dddd', import.meta.env.VITE_AUTOLOGIN);
         this.Init();
-        console.log("import.meta.env.VITE_SOCKETURL", import.meta.env.VITE_SOCKETURL);
 
 
         // localStorage.setItem("asdd", "123123");
@@ -68,14 +66,11 @@ export class ClientSocketManager {
             for (let i = 0; i < mapInfo.cellList.length; i++) {
                 ClientGameManager.currentMap.cellList[i].isOccupied = mapInfo.cellList[i].isOccupied;
 
-                // * Setup Item Info
+                // * Setup Item Status Info
 
-                let f = mapInfo.cellList[i].hasFirstLayerItem;
-                // let s = mapInfo.cellList[i].hasSecondaryLayerItem;
-
-                if (f) {
-                    let item = new ClientItem(f.id, mapInfo.cellList[i].position, f.itemType)
-                    ClientGameManager.currentItemList.push(item);
+                let foundItem = mapInfo.cellList[i].hasFirstLayerItem;
+                if (foundItem) {
+                    ClientGameManager.spawnItemOnWorld(foundItem.id, mapInfo.cellList[i].position, foundItem.itemType, foundItem.isLightStatus);
                 }
                 // if (s) {
                 // ClientGameManager.currentMap.cellList[i].hasSecondaryLayerItem = new ClientItem(s.id, mapInfo.cellList[i].position, s.itemType, 1)
@@ -90,13 +85,25 @@ export class ClientSocketManager {
                 if (serverCharacterList[i].id != this.clientIO.id) {
                     let spanwedOtherCharacter =
                         new ClientCharacter(serverCharacterList[i].id,
-                            serverCharacterList[i].displayName, serverCharacterList[i].currentPosition, false, serverCharacterList[i].characterType);
+                            serverCharacterList[i].displayName, serverCharacterList[i].currentPosition, false, serverCharacterList[i].characterType, serverCharacterList[i].isNPC);
                     spanwedOtherCharacter.SetDirection(serverCharacterList[i].currentDirection);
+                    //* picking item state
+                    let pickingItem = serverCharacterList[i].currentPickingItem;
+                    if (pickingItem != null) {
+                        ClientGameManager.setItemToCharacter(spanwedOtherCharacter, pickingItem.itemType);
+                    }
                     ClientGameManager.currentCharacterList.push(spanwedOtherCharacter);
                     console.log("!!!! span", spanwedOtherCharacter);
+
                 }
             }
-
+            //* SETUP DARK SHADOW STATUS
+            if (mapInfo.currentDarkShadowStatue == true) {
+                ClientGameManager.changeDarkShadowStatus(true);
+            }
+            else {
+                ClientGameManager.changeDarkShadowStatus(false);
+            }
 
         });
 
@@ -116,9 +123,22 @@ export class ClientSocketManager {
             if (otherCH != null) {
                 otherCH.SetDirection(direction);
             }
-            console.log('DDDD', direction);
         });
 
+
+        this.clientIO.on('player-tryEmotion', (id: string) => {
+            let character = ClientGameManager.getCharacterBySocketId(id);
+            if (character) {
+                character.tryEmotionAnimation();
+            }
+        });
+
+        this.clientIO.on('player-offEmotion', (id: string) => {
+            let character = ClientGameManager.getCharacterBySocketId(id);
+            if (character) {
+                character.offEmotionAnimation();
+            }
+        });
         this.clientIO.on('player-TryMoveAnimation', (to: Vector2, id: string) => {
             let otherCH = ClientGameManager.currentCharacterList.find(ch => ch.id == id);
             if (otherCH != null) {
@@ -147,20 +167,19 @@ export class ClientSocketManager {
         });
 
 
-        this.clientIO.on('light-toggle',(bool : boolean) => 
-        {
-            ClientGameManager.changeMap(bool);
+        this.clientIO.on('shadow-toggle', (bool: boolean) => {
+            ClientGameManager.changeDarkShadowStatus(bool);
         });
-        
-        this.clientIO.on('player-TrySpawn', (to: Vector2, socketid: string, displayName: string, characterType: characterType) => {
+
+        this.clientIO.on('player-TrySpawn', (to: Vector2, socketid: string, displayName: string, characterType: characterType, isNpc: boolean) => {
             console.log('spawn position from server', to)
             if (socketid == null) return;
             console.log(`this.clientIO.id :${this.clientIO.id},     socketid:${socketid}`)
             if (this.clientIO.id == socketid) {
-                ClientGameManager.spawnCharacter(socketid, displayName, to, true, characterType);
+                ClientGameManager.spawnCharacter(socketid, displayName, to, true, characterType, isNpc);
             }
             else {
-                ClientGameManager.spawnCharacter(socketid, displayName, to, false, characterType);
+                ClientGameManager.spawnCharacter(socketid, displayName, to, false, characterType, isNpc);
             }
         });
 
@@ -172,53 +191,95 @@ export class ClientSocketManager {
                     who.attackAnimation();
             }
         });
+
         this.clientIO.on('player-tryPickItemForward', (to: Vector2, whoId: string, itemid: string) => {
             console.log('received ', to);
             console.log(whoId);
             console.log(itemid);
             let who = ClientGameManager.getCharacterBySocketId(whoId);
-            let clientItem = ClientGameManager.getClientItemByItemId(itemid);
+            // let clientItem = ClientGameManager.getClientItemByItemId(itemid);
             console.log(444);
             if (who) {
-                if (clientItem) {
-
-                    who.tryPickAnimation(to, itemid);
-
-                }
+                ClientGameManager.deleteItemFromWorld(itemid);
+                who.tryPickAnimation(to);
             }
         });
-        this.clientIO.on('player-dropItemForward', (to: Vector2, whoId: string, itemid: string) => {
-            console.log('is going to drop item ', to);
-            console.log(whoId);
-            console.log(itemid);
+
+        this.clientIO.on('player-setPickingItemState', (whoId: string, itemType: ItemType) => {
             let who = ClientGameManager.getCharacterBySocketId(whoId);
-            let clientItem = ClientGameManager.getClientItemByItemId(itemid);
+            if (who) {
+                ClientGameManager.setItemToCharacter(who, itemType)
+                // who.setPickingItemState(itemType);
+            }
+        });
+        this.clientIO.on('player-offPickingItemState', (whoId: string) => {
+            let who = ClientGameManager.getCharacterBySocketId(whoId);
+            if (who) {
+                ClientGameManager.offItemFromCharacter(who);
+                // who.setPickingItemState(itemType);
+            }
+        });
+
+
+
+
+        this.clientIO.on('player-dropItemForward', (to: Vector2, whoId: string, itemType: ItemType) => {
+            console.log('is going to drop item ', to);
+            let who = ClientGameManager.getCharacterBySocketId(whoId);
+            // let clientItem = ClientGameManager.getClientItemByItemId(itemid);
 
             if (who) {
-                if (clientItem) {
-                    console.log(3);
-                    who.tryDropItemAnimation(to, itemid);
-                }
+                // if (clientItem) {
+                // ClientGameManager.offItemFromCharacter(who);
+                who.tryDropItemAnimation(to, itemType);
+                // }
             }
         });
+
+
+
         this.clientIO.on('player-eatItemForward', (to: Vector2, whoId: string, itemid: string) => {
             console.log('is going to EAT item ', to);
             console.log(whoId);
             console.log(itemid);
             let who = ClientGameManager.getCharacterBySocketId(whoId);
-            let clientItem = ClientGameManager.getClientItemByItemId(itemid);
+            // let clientItem = ClientGameManager.getClientItemByItemId(itemid);
             if (who) {
                 who.tryEatItemAnimation(to, itemid);
             }
         });
 
-        this.clientIO.on('remove-item', (itemid: string) => {
-            let item = ClientGameManager.getClientItemByItemId(itemid);
-            if (item) {
-                item.tryRemoveItemFromWorld();
-                ClientGameManager.currentItemList = ClientGameManager.currentItemList.filter(i => i.id != itemid);
-            }
 
+        this.clientIO.on('light-toggle', (id: string, onoff: boolean) => {
+            console.log('light-toggle id:', id);
+            //get item
+
+            let item = ClientGameManager.currentItemList.find(i => i.id == id)
+            console.log('item', item);
+            item?.toggleLight(onoff);
+        });
+        this.clientIO.on('try-spawn-item', (id: string, to: Vector2, itemType: ItemType, currentLightStatue: boolean) => {
+
+            ClientGameManager.spawnItemOnWorld(id, to, itemType, currentLightStatue);
+            // console.log('to:', to);
+            // console.log('itemType:', itemType);
+            // let c = ClientGameManager.currentMap?.getCellByVector2(to);
+            // if (c) {
+            //     new ClientItem("", to, itemType);
+            // }
+        });
+        this.clientIO.on('remove-item', (id: string, to: Vector2) => {
+            // let item = ClientGameManager.getClientItemByItemId(itemid);
+            // if (item) {
+            // item.tryRemoveItemFromWorld();
+            // ClientGameManager.currentItemList = ClientGameManager.currentItemList.filter(i => i.id != itemid);
+            // }
+            console.log('remove-item');
+            console.log('remove-item');
+            let i = ClientGameManager.currentItemList.find(i => i.id == id);
+            if (i) {
+                i.tryRemoveItemFromWorld();
+            }
         });
 
 

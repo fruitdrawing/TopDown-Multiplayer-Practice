@@ -1,10 +1,7 @@
 import { Camera } from "./Camera";
-import { Cell } from "./Cell";
-import { characterType, Direction } from "./Enums";
+import { characterType, Direction, itemDB, ItemType } from "../../server/shared/Enums";
 import { ClientGameManager } from "./ClientGameManager";
-import { ClientItem } from "./ClientItem";
 import { Vector2 } from "../../server/Vector2";
-// import { ServerCharacter } from "../../server/ServerCharacter";
 
 export class ClientCharacter {
     id: string;
@@ -12,27 +9,34 @@ export class ClientCharacter {
     displayName: string;
     currentPosition: Vector2 = new Vector2(0, 0);
     private currentDirection: Direction = Direction.South;
+
+    isMoving: boolean = false;
+    isAttacking: boolean = false;
+
+
+
+    camera: Camera | undefined = undefined;
     wrapperHtmlElement: HTMLDivElement;
     characterHtmlElement: HTMLDivElement;
     characterSpriteHtmlElement: HTMLDivElement;
     shadowHtmlElement: HTMLDivElement;
-    isMoving: boolean = false;
-
-    isAttacking: boolean = false;
     displayNameWrapperHTML: HTMLDivElement;
     displayNameHTML: HTMLParagraphElement;
 
-    camera: Camera | undefined = undefined;
-    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean, characterType: characterType) {
+    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean, characterType: characterType, isthisNpc: boolean) {
+
+        if (authorization == true) {
+            this.camera = new Camera(this);
+            this.camera.characterToFocus = this;
+            ClientGameManager.updateLoop();
+
+        }
+
         this.id = id;
 
         this.characterType = characterType;
 
 
-        if (authorization == true) {
-            this.camera = new Camera(this);
-            this.camera.characterToFocus = this;
-        }
         this.currentPosition = initialPosition;
 
 
@@ -68,7 +72,6 @@ export class ClientCharacter {
         this.displayName = displayName;
         this.SetClientName(displayName)
 
-        this.TryMoveAnimation(this.currentPosition);
 
 
         // * shadow
@@ -78,7 +81,13 @@ export class ClientCharacter {
 
 
         this.setupSpriteSheetByCharacterType(characterType);
-        
+        this.TryMoveAnimation(this.currentPosition);
+
+
+        if (isthisNpc) {
+            console.log("NPC SPAWNED");
+            this.displayNameHTML.setAttribute("npc", "true");
+        }
     }
 
     ChangeNameEvent(name: string) {
@@ -117,11 +126,10 @@ export class ClientCharacter {
 
 
 
-    async tryPickAnimation(to: Vector2, itemid: string) {
+    async tryPickAnimation(to: Vector2) {
         this.characterSpriteHtmlElement.classList.remove('character_spritesheet');
         void this.characterSpriteHtmlElement.offsetWidth;
         this.characterSpriteHtmlElement.classList.add('character_spritesheet');
-        console.log(888888);
         switch (this.getCurrentDirection()) {
             case Direction.West:
                 this.characterHtmlElement.setAttribute("action", "west");
@@ -144,17 +152,38 @@ export class ClientCharacter {
 
         await new Promise(resolve => setTimeout(resolve, 400));
         this.characterSpriteHtmlElement.setAttribute("pick", "false");
-        let cell = ClientGameManager.currentMap?.getCellByVector2(to);
-        if (cell) {
-            let i = ClientGameManager.getClientItemByItemId(itemid)
-            console.log(i);
-            i?.pickedBy(this);
+
+        // let item = ClientGameManager.currentMap?.tryGetItemOnCellByVector2(to);
+        // if (item) {
+        //     await item.pickedBy(this);
+
+        // }
+
+    }
+
+    setPickingItemState(itemType: ItemType) {
+        let itemHTML = document.createElement('div') as HTMLDivElement;
+        itemHTML.classList.add('GameObject');
+
+        itemHTML.classList.add('itemPickedStatus');
+        this.wrapperHtmlElement.append(itemHTML);
+        itemHTML.style.transform = 'translate3d(0,0,0)';
+        let i = itemDB.find(i => i.itemType == itemType);
+        if (i) {
+            itemHTML.classList.add(i.src);
         }
     }
 
+    offPickingState() {
+        let itemHTML: HTMLDivElement | null = this.wrapperHtmlElement.querySelector('.itemPickedStatus');
+        if (itemHTML) {
+            itemHTML.remove();
+        }
+    }
     async tryEatItemAnimation(to: Vector2, itemid: string) {
 
-        let clientItem = ClientGameManager.getClientItemByItemId(itemid);
+        // let clientItem = ClientGameManager.getClientItemByItemId(itemid);
+        let clientItem = ClientGameManager.currentItemList.find(i => i.id == itemid);
         clientItem?.tryRemoveItemFromWorld();
 
         switch (this.getCurrentDirection()) {
@@ -183,34 +212,32 @@ export class ClientCharacter {
 
 
     }
-    async tryDropItemAnimation(to: Vector2, itemid: string) {
+
+    async tryEmotionAnimation()
+    {
+        this.characterSpriteHtmlElement.setAttribute("emotion", "true");
+    }
+
+
+    async offEmotionAnimation()
+    {
+        this.characterSpriteHtmlElement.setAttribute("emotion", "false");
+    }
+    async tryDropItemAnimation(to: Vector2, itemType: ItemType) {
         //
         // append html to world
         // create new html
 
-        let itemHTML: HTMLDivElement | null = this.wrapperHtmlElement.querySelector('.itemPickedStatus');
-        let mapHTML = document.getElementById('map');
-        if (itemHTML != null) {
-            mapHTML?.append(itemHTML);
-            itemHTML.style.transform = `translate3d(${this.currentPosition.x *
-                ClientGameManager.CellDistanceOffset}px,
-                 ${this.currentPosition.y * ClientGameManager.CellDistanceOffset}px,0px`;
-            itemHTML.classList.remove('itemPickedStatus');
-            itemHTML.style.transform = `translate3d(${to.x *
-                ClientGameManager.CellDistanceOffset}px,${to.y *
-                ClientGameManager.CellDistanceOffset}px,0px`;
-            console.log(5);
-        }
+        // * select holding child item
+        this.offPickingState()
+        // let mapHTML = document.getElementById('map');
 
-        let cell = ClientGameManager.currentMap?.getCellByVector2(to);
-        if (cell) {
-            console.log(777777);
-            console.log(777777);
-            console.log(777777);
-            console.log(777777);
-            console.log(ClientGameManager.getClientItemByItemId(itemid));
 
-        }
+        // let cell = ClientGameManager.currentMap?.getCellByVector2(to);
+        // if (cell) {
+        // console.log(ClientGameManager.getClientItemByItemId(itemid));
+
+        // }
 
         switch (this.getCurrentDirection()) {
             case Direction.West:
@@ -232,10 +259,29 @@ export class ClientCharacter {
 
 
         this.characterSpriteHtmlElement.setAttribute("pick", "true");
+        // if (itemHTML != null) {
+
+        //     mapHTML?.append(itemHTML);
+        //     itemHTML.style.transform = `translate3d(${this.currentPosition.x *
+        //         ClientGameManager.CellDistanceOffset}px,
+        //          ${this.currentPosition.y * ClientGameManager.CellDistanceOffset}px,0px`;
+        //     itemHTML.classList.remove('itemPickedStatus');
+        //     itemHTML.style.transform = `translate3d(${to.x *
+        //         ClientGameManager.CellDistanceOffset}px,${to.y *
+        //         ClientGameManager.CellDistanceOffset}px,0px`;
+
+        // let c = ClientGameManager.currentMap?.getCellByVector2(to);
+        // if(c)
+        // {
+        //     c.hasFirstLayerItem = new ClientItem("123",to,itemType);
+        // }
+        // }
         await new Promise(resolve => setTimeout(resolve, 400));
+
         this.characterSpriteHtmlElement.setAttribute("pick", "false");
         // set starting point first
         // set end point
+
 
     }
 
@@ -297,7 +343,8 @@ export class ClientCharacter {
         // }
         this.isMoving = false;
         // console.log('reatedMap.getCellByVector2(to))', createdMap.getCellByVector2(to));
-
+        //* Set Z-index
+        this.wrapperHtmlElement.setAttribute('z-index', (this.currentPosition.y - 90).toString());
     }
 
     public async tryAttack() {
@@ -492,6 +539,11 @@ export class ClientCharacter {
                 this.characterSpriteHtmlElement.classList.add('character_male02')
 
                 break;
+
+            case characterType.skeleton:
+                this.characterSpriteHtmlElement.classList.add('character_skeleton');
+                break;
+
 
         }
     }

@@ -1,8 +1,7 @@
-import { characterType, Direction } from "../client/src/Enums";
+import { characterType, Direction, ItemType } from "./shared/Enums";
 import { ServerCell } from "./ServerCell";
 import { ServerGameManager } from "./ServerGameManager";
 import { ServerItem } from "./ServerItem";
-import { ServerManager } from "./ServerManager";
 import { Vector2 } from "./Vector2";
 
 export class ServerCharacter {
@@ -11,13 +10,17 @@ export class ServerCharacter {
     isClient: boolean;
     currentPosition: Vector2 = new Vector2(0, 0);
     currentDirection: Direction = Direction.South;
+
+
+    isNPC: boolean = false;
+
     isMoving: boolean = false;
     isAttacking: boolean = false;
     isPicking: boolean = false;
     isDamaging: boolean = false;
     isDropping: boolean = false;
     isEating: boolean = false;
-
+    isEmotioning : boolean = false;
 
     tempLightSwitch: boolean = false;
     currentPickingItem: ServerItem | undefined = undefined;
@@ -29,8 +32,9 @@ export class ServerCharacter {
     bag: ServerItem[] = [];
 
     characterType: characterType;
-    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean, characterType: characterType) {
+    constructor(id: string, displayName: string, initialPosition: Vector2, authorization: boolean, characterType: characterType, isthisNpc: boolean) {
         this.characterType = characterType;
+        this.isNPC = isthisNpc;
         // if(createdMap.checkOccupiedByVector2(initialPosition)) return;
         this.id = id;
         this.displayName = displayName;
@@ -45,6 +49,7 @@ export class ServerCharacter {
         // this.characterSpriteHtmlElement.classList.add('character_spritesheet');
         // this.characterHtmlElement.append(this.characterSpriteHtmlElement);
         // document.getElementById('map')?.append(this.characterHtmlElement);
+        
         this.TryMove(initialPosition);
 
     }
@@ -52,7 +57,8 @@ export class ServerCharacter {
     canDoSomething(): boolean {
         if (this.isAttacking === true || this.isMoving === true
             || this.isPicking === true || this.isDamaging === true ||
-            this.died === true || this.isDropping === true || this.isEating === true) return false;
+            this.died === true || this.isDropping === true || this.isEating === true ||
+            this.isEmotioning === true) return false;
         return true;
     }
 
@@ -71,8 +77,8 @@ export class ServerCharacter {
             this.currentDirection = Direction.South;
         }
         ServerGameManager.serverSocketManager.serverio.emit('player-directionChanged', this.currentDirection, this.id);
-        console.log('direction changed');
     }
+
     canMoveTo(to: Vector2): boolean {
         if (this.canDoSomething() == false) return false;
 
@@ -106,6 +112,7 @@ export class ServerCharacter {
         // this.isMoving = true;
         this.currentPosition = to;
 
+        ServerGameManager.serverSocketManager.serverio.emit('player-TryMoveAnimation', to, this.id);
         // await new Promise(resolve => setTimeout(resolve, 400));
 
         //* item check and pick up
@@ -145,23 +152,66 @@ export class ServerCharacter {
                         console.log(`damge character : ${targetCell.standingCharacter}`);
                         targetCell.standingCharacter.damage();
                     }
+
                 }
+                else(targetCell.hasFirstLayerItem !=null)
+                {
+                    let item = targetCell.hasFirstLayerItem;
+                    if(item)
+                    {
+                        let itemInfo = ServerGameManager.getItemInfoByItemTypeFromDB(item.itemType);
+                        if(itemInfo)
+                        {
+                            itemInfo.itemType;
+                        }
+                    }
+                }
+
             }
         }
         await new Promise(resolve => setTimeout(resolve, 500));
         // this.characterSpriteHtmlElement.setAttribute("attack", "false");
+        if(targetCell?.hasFirstLayerItem)
+        {
+            let itemtype = targetCell.hasFirstLayerItem.itemType;
+            switch(itemtype)
+            {
+                case ItemType.lightlamp:
+                    targetCell.hasFirstLayerItem.toggleLight();
+                    break;
+
+                case ItemType.lightpinklamp:
+                    targetCell.hasFirstLayerItem.toggleLight();
+
+                    break;
+
+                case ItemType.lightswitch:
+                    ServerGameManager.serverSocketManager.toggleShadow();
+                    break;
+
+            }
+        }
         this.isAttacking = false;
         // this.characterSpriteHtmlElement.style.setProperty('animation-iteration-count', 'infinite')
 
     }
 
+    async tryEmotion(){
+        if(this.canDoSomething() == false) return;
+        this.isEmotioning = true;
+        ServerGameManager.serverSocketManager.serverio.emit('player-tryEmotion',this.id);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        ServerGameManager.serverSocketManager.serverio.emit('player-offEmotion',this.id);
+        this.isEmotioning = false;
+    }
 
+    
     async damage() {
         if (this.died == true) return;
         // * emit light on off
 
         if (this.tempLightSwitch == true) {
-            ServerGameManager.serverSocketManager.toggleLight();
+            ServerGameManager.serverSocketManager.toggleShadow();
 
         }
         // ^ damage effect
@@ -227,7 +277,10 @@ export class ServerCharacter {
 
         ServerGameManager.serverSocketManager.serverio.emit('player-tryPickItemForward', output.position, this.id, output.id);
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        ServerGameManager.serverSocketManager.serverio.emit('remove-item', output.id, output.position);
+        ServerGameManager.serverSocketManager.serverio.emit('player-setPickingItemState', this.id, output.itemType);
 
         this.isPicking = false;
 
@@ -242,8 +295,13 @@ export class ServerCharacter {
             if (forwardCell.canDropItemHere(this.currentPickingItem)) {
                 forwardCell.tryPutItem(this.currentPickingItem);
 
-                ServerGameManager.serverSocketManager.serverio.emit('player-dropItemForward', forwardCell.position, this.id, this.currentPickingItem.id);
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                ServerGameManager.serverSocketManager.serverio.emit('player-dropItemForward', forwardCell.position, this.id, this.currentPickingItem.itemType);
+                await new Promise(resolve => setTimeout(resolve, 400));
+                console.log('fowardCell.position:', forwardCell.position);
+                ServerGameManager.serverSocketManager.serverio.emit('player-offPickingItemState', this.id);
+
+                ServerGameManager.serverSocketManager.serverio.emit('try-spawn-item', this.currentPickingItem.id, forwardCell.position, this.currentPickingItem.itemType,this.currentPickingItem.isLightStatus);
+
                 this.currentPickingItem = undefined;
             }
 
@@ -349,6 +407,32 @@ export class ServerCharacter {
         }
     }
 
+    getRandomCell() : ServerCell | undefined
+    {
+        let randomNum = Math.floor (( Math.random() * 4 ));
+        let output : ServerCell | undefined;
+        switch(randomNum)
+        {
+            case 0:
+                output = ServerGameManager.currentMapInfo.getCellByVector2(new Vector2(this.currentPosition.x + 1, this.currentPosition.y));
+                break;
+            case 1:
+                output = ServerGameManager.currentMapInfo.getCellByVector2(new Vector2(this.currentPosition.x - 1, this.currentPosition.y));
+
+                break;
+            case 2:
+                output = ServerGameManager.currentMapInfo.getCellByVector2(new Vector2(this.currentPosition.x, this.currentPosition.y+1));
+
+                break;
+            case 3:
+                output = ServerGameManager.currentMapInfo.getCellByVector2(new Vector2(this.currentPosition.x, this.currentPosition.y-1));
+
+                break;
+                
+        }
+   
+        return output;
+    }
 
     disconnect() {
 

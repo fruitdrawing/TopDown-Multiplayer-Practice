@@ -1,7 +1,5 @@
-import { ClientCharacter } from "./ClientCharacter";
-import { Direction } from "./Enums";
+import { Direction } from "../../server/shared/Enums";
 import { ClientGameManager } from "./ClientGameManager";
-import { addSyntheticLeadingComment } from "typescript";
 
 export class InputManager {
 
@@ -13,7 +11,7 @@ export class InputManager {
     attackPressed: boolean = false;
     eatPressed: boolean = false;
     pickPressed: boolean = false;
-
+    emotionPressed: boolean = false;
 
     delay: number = 400;
     bottomui: HTMLDivElement = document.getElementById("bottomUI") as HTMLDivElement;
@@ -46,7 +44,6 @@ export class InputManager {
     // clientSocketManager: ClientSocketManager | undefined = undefined;
     constructor() {
 
-        this.checkKeyInput();
 
 
         this.setupKeyDownEvent();
@@ -163,19 +160,29 @@ export class InputManager {
                 this.canSendInput = true;
             }
         }
+        else if (this.emotionPressed){
+            if (ClientGameManager.playerCharacter.isMoving == false) {
+                // ClientGameManager.playerCharacter.tryAttack();
+                console.log('client EAT pick');
+                ClientGameManager.clientSocket.clientIO.emit('player-tryEmotion');
+                this.canSendInput = false;
+                await new Promise(resolve => setTimeout(resolve, this.delay));
+                this.canSendInput = true;
+            }
+        }
 
     }
 
-    canSendInputFunc() {
+    canSendInputFunc(): boolean {
+        if (this.canSendInput == false) return false;
 
-        if (this.canSendInput == false) {
-            return false;
-        }
+        if (ClientGameManager.playerCharacter == undefined) return false;
         if (ClientGameManager.playerCharacter) {
             if (ClientGameManager.playerCharacter.isAttacking || ClientGameManager.playerCharacter.isMoving) {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -211,6 +218,10 @@ export class InputManager {
             }
             if (e.key === 'e') {
                 this.eatPressed = true;
+            }
+            if(e.key === 'c')
+            {
+                this.emotionPressed = true;
             }
         });
 
@@ -248,6 +259,9 @@ export class InputManager {
             }
             if (e.key === 'e') {
                 this.eatPressed = false;
+            }
+            if(e.key === 'c') {
+                this.emotionPressed = false;
             }
 
         });
@@ -293,6 +307,9 @@ export class InputManager {
                     case "eatButton":
                         this.eatPressed = true;
                         break;
+                    case "emotionButton":
+                        this.emotionPressed = true;
+                        break;
 
 
                 }
@@ -315,6 +332,7 @@ export class InputManager {
             this.attackPressed = false;
             this.eatPressed = false;
             this.pickPressed = false;
+            this.emotionPressed = false;
         });
 
     }

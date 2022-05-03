@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "node server/dist/server/main.js",
-    "test": "npm --prefix ./client/ run build && nodemon server/main.ts",
-    "deploy": "cd server && tsc && cd .. && npm --prefix ./client/ run build"
+    "start": "node server/dist/main.js",
+    "test": "cd server && tsc && cd .. && npm --prefix ./client/ run build && mkdir -p ./server/dist/src && cp ./server/src/collision.csv ./server/dist/src/ && nodemon server/main.ts",
+    "deploy": "cd server && tsc && cd .. && npm --prefix ./client/ run build && mkdir -p ./server/dist/src && cp ./server/src/collision.csv ./server/dist/src/ && gcloud app deploy"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/ifvisible": "^1.1.0",
+    "@types/node": "^17.0.30",
     "ifvisible.js": "^1.0.6",
     "nodemon": "^2.0.15",
     "ts-node": "^10.7.0"

@@ -2,9 +2,7 @@ import express from 'express';
 import { Server, Socket } from 'socket.io';
 import http from 'http';
 
-
-import { Vector2 } from './Vector2'
-import { Direction, characterType } from '../client/src/Enums'
+import { Direction, characterType } from './shared/Enums'
 import { ServerGameManager } from './ServerGameManager';
 import { ServerCharacter } from './ServerCharacter';
 
@@ -24,24 +22,34 @@ export class ServerManager {
     port = process.env.PORT || 3001;
     // public currentUserList: string[] = [];
 
-    light: boolean = false;
+    shadowStatus: boolean = false;
     constructor() {
         this.app.use(express.static('client/dist'));
 
         this.app.get('/c', (req, res) => {
-            res.send(`currentPlayerCharacterList: ${JSON.stringify(ServerGameManager.currentPlayerCharacterList.map(c => c.id))} \n
-           
-             currentItemInWorld : ${JSON.stringify(ServerGameManager.currentItemList.map(i => i.itemType))}\n
-           
-                currentCellInfo isoccupied true only: ${JSON.stringify(ServerGameManager.currentMapInfo.cellList.filter(c => c.checkOccupied()).map(c => c.position))}
-                currentCellInfo firstItem only: ${JSON.stringify(ServerGameManager.currentMapInfo.cellList.filter(c => c.hasPickableItem() != undefined).map(c => c.position))}
+            res.send(`
+                <h1>character List</h1>
+            <h4>currentPlayerCharacterList: <ul>${JSON.stringify(ServerGameManager.currentPlayerCharacterList.map(c => c.displayName))
+                }</ul></h4>
+            <h1>currentItem</h1>
+             <h4>currentItemID InWorld : ${JSON.stringify(ServerGameManager.currentItemList.map(i => i.id))}\</h4>
+             <h4>currentItemTYPE InWorld : ${JSON.stringify(ServerGameManager.currentItemList.map(i => i.itemType))}\n</h4>
+             <h4>currentItem POSITION InWorld : ${JSON.stringify(ServerGameManager.currentItemList.map(i => i.position))}\n</h4>
+            <h1>ITEM<h1>
+                <h4>currentCellInfo hasPickableItem List: ${JSON.stringify(ServerGameManager.currentMapInfo.cellList.filter(c => c.hasPickableItem() != undefined).map(c => c.position))}</h4>
+                <h4>currentCellInfo position which has item List: ${JSON.stringify(ServerGameManager.currentMapInfo.cellList.filter(c => c.hasFirstLayerItem != undefined).map(c => c.position))}</h4>
                 
                 `)
 
         });
 
         this.app.get('/e', (req, res) => {
-            this.toggleLight();
+            this.toggleShadow();
+        });
+
+
+        this.app.get('/t', (req, res) => {
+            this.toggleShadow();
         });
         this.server.listen(this.port, () => {
             console.log(`listening to ${this.port}`);
@@ -88,14 +96,19 @@ export class ServerManager {
                 this.serverio.to(clientSocket.id).emit('current-serverinfo', ServerGameManager.currentMapInfo, ServerGameManager.currentPlayerCharacterList);
             });
 
+            clientSocket.on('player-tryEmotion',() => {
+                let requestedPlayer = ServerGameManager.getCharacterById(clientSocket.id);
+                if (requestedPlayer == null) return;
 
+                requestedPlayer.tryEmotion();
+            })
 
             clientSocket.on('player-TrySpawn', (socketid: string, receivedDisplayName: string, receivedCharacterType: characterType) => {
                 console.log('player-spawned : ', socketid);
-                let tempList = ServerGameManager.currentMapInfo.cellList.filter(m => m.checkOccupied() == false);
+                let tempList = ServerGameManager.currentMapInfo.cellList.filter(m => m.checkOccupied() == false).filter(c => c.position.y < 19);
                 let randomNotOccupiedCell = tempList[Math.floor(Math.random() * tempList.length)];
                 console.log(randomNotOccupiedCell);
-                let createdChara = new ServerCharacter(socketid, receivedDisplayName, randomNotOccupiedCell.position, false, receivedCharacterType);
+                let createdChara = new ServerCharacter(socketid, receivedDisplayName, randomNotOccupiedCell.position, false, receivedCharacterType, false);
                 // while (randomCell.isOccupied != true) {
                 //     randomCellTwo = ServerGameManager.currentMap.cellList[Math.floor(Math.random() * ServerGameManager.currentMap.cellList.length)];
                 //     if (randomCellTwo != null) {
@@ -114,12 +127,10 @@ export class ServerManager {
 
             clientSocket.on('player-TryMove', (direction: Direction) => {
                 // console.log(direction, clientSocket.id);
-                console.log('tried move!');
 
                 let requestedPlayer = ServerGameManager.getCharacterById(clientSocket.id);
                 if (requestedPlayer == null) return;
                 let cellByDirection = requestedPlayer?.getCellByDirection(direction);
-                // console.log(cellByDirection);
                 if (cellByDirection != null) {
                     requestedPlayer.setDirectionByPosition(cellByDirection.position);
                     if (cellByDirection.checkOccupied() == false) {
@@ -129,7 +140,7 @@ export class ServerManager {
                                 console.log('who : ', clientSocket.id)
                                 console.log('try move to :', cellByDirection.position)
 
-                                this.serverio.emit('player-TryMoveAnimation', cellByDirection.position, clientSocket.id);
+                                // this.serverio.emit('player-TryMoveAnimation', cellByDirection.position, clientSocket.id);
                                 return;
                             }
                             else {
@@ -163,7 +174,6 @@ export class ServerManager {
                     }
                 }
             });
-
 
             clientSocket.on('player-tryPickItemForward', () => {
 
@@ -239,17 +249,41 @@ export class ServerManager {
 
     }
 
-    toggleLight() {
-        if (this.light == true) {
-            this.light = false;
-            this.serverio.emit('light-toggle', this.light);
+    removeCharacter(id: string) {
+        // ! remove user from list
+        let willBeDeleteCharacter = ServerGameManager.currentPlayerCharacterList.find(ch => ch.id == id);
+        if (willBeDeleteCharacter) {
+            let wasStandingCell = ServerGameManager.currentMapInfo.getCellByVector2(willBeDeleteCharacter.currentPosition);
+            if (wasStandingCell) {
+                // * empty the cell someone was standing
+                wasStandingCell.setStandingCharacter(undefined);
+                // wasStandingCell.isOccupied = false;
+            }
+
+            // ! null can be occupied by ghost
+            // this.removeArray(ServerGameManager.currentPlayerCharacterList, foundCharacter);
+            // ^ elemenate ghost null
+            ServerGameManager.currentPlayerCharacterList.filter(c => c == null).map(c => ServerGameManager.currentMapInfo.setOccupiedCell(c.currentPosition, false))
+            ServerGameManager.currentPlayerCharacterList.filter(c => c == null).map(c => ServerGameManager.currentMapInfo.setCharacterStanding(c.currentPosition, undefined))
+
+            ServerGameManager.currentPlayerCharacterList = ServerGameManager.currentPlayerCharacterList.filter(c => c.id != id && c.id != null);
+            this.serverio.emit('disconnect-fromserver', willBeDeleteCharacter.id);
+        }
+    }
+
+    toggleShadow() {
+        if (ServerGameManager.currentMapInfo.currentDarkShadowStatue == true) {
+            ServerGameManager.currentMapInfo.currentDarkShadowStatue = false;
+
+            this.serverio.emit('shadow-toggle', ServerGameManager.currentMapInfo.currentDarkShadowStatue);
         }
         else {
-            this.light = true;
-            this.serverio.emit('light-toggle', this.light);
+            ServerGameManager.currentMapInfo.currentDarkShadowStatue = true;
+            this.serverio.emit('shadow-toggle', ServerGameManager.currentMapInfo.currentDarkShadowStatue);
 
 
         }
+
         console.log("toggle light");
     }
 
