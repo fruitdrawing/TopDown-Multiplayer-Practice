@@ -25,9 +25,48 @@ class MapInfo{
             this.grid.push(xArray)
         }
     }
+
     getCellByXY(x:number,y:number) : Cell | undefined
     {
         if(x < this.minX || x > this.maxX || y < this.minY || y > this.maxY) return undefined;
         return this.grid[x][y];
+    }
+
+    moveCharacter(character:Character,toX:number,toY:number) : void
+    {
+        if(character == undefined) return;
+        let targetCell = this.getCellByXY(toX,toY);
+        if(targetCell == undefined) return;
+        if(targetCell.isOccupied == true) return;
+
+        let previouslyStandingCell = this.getCellByXY(character.x,character.y);
+        if(previouslyStandingCell) 
+        {
+            previouslyStandingCell.isOccupied = false;
+            previouslyStandingCell.standingCharacter = undefined;
+        }
+
+        targetCell.isOccupied = true;
+        targetCell.standingCharacter = character;
+        character.x = toX;
+        character.y = toY;
+    }
+}
+
+class Character{
+    x:number;
+    y:number;
+    mapInfo : MapInfo;
+    constructor(x:number,y:number,mapInfo:MapInfo)
+    {
+        this.x=x;
+        this.y=y;
+        this.mapInfo = mapInfo;
+        this.tryMove(x,y);
+    }
+
+    tryMove(toX:number,toY:number)
+    {
+        this.mapInfo.moveCharacter(this,toX,toY);
     }
 }
